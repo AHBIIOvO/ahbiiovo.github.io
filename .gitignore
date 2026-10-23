@@ -1,0 +1,10 @@
+node_modules/
+tmp/
+*.log
+.env
+.env.*
+__pycache__/
+scripts/
+*.pdf
+*.ppt
+*.pptx
