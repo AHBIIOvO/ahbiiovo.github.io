@@ -1,6 +1,27 @@
 'use strict';
 const languageButton = document.querySelector('#language');
 let language = 'en';
+const detailIconPaths = {
+  '↗':'M7 17 17 7M7 7h10v10', '↖':'M17 17 7 7m0 10V7h10',
+  '←':'M19 12H5m6-6-6 6 6 6', '↑':'M12 20V4m-6 6 6-6 6 6',
+  '→':'M5 12h14m-6-6 6 6-6 6', '▶':'m9 5 11 7-11 7Z',
+  '×':'m6 6 12 12M6 18 18 6',
+  globe:'M3.5 12h17M12 3.5c-4.5 4.8-4.5 12.2 0 17 4.5-4.8 4.5-12.2 0-17Z'
+};
+function detailIcon(symbol) {
+  return `<svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true">${symbol==='globe'?'<circle cx="12" cy="12" r="8.5"/>':''}<path d="${detailIconPaths[symbol]}"/></svg>`;
+}
+function decorateSymbols() {
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const nodes=[];while(walker.nextNode())if(!['SCRIPT','STYLE'].includes(walker.currentNode.parentElement.tagName)&&/[↗↖←↑→▶×]/.test(walker.currentNode.textContent))nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const fragment=document.createDocumentFragment();
+    node.textContent.split(/([↗↖←↑→▶×])/).forEach(part=>{
+      if(detailIconPaths[part]){const template=document.createElement('template');template.innerHTML=detailIcon(part);fragment.append(template.content);}
+      else fragment.append(document.createTextNode(part));
+    });node.replaceWith(fragment);
+  });
+}
 try { language = localStorage.getItem('portfolio-language') === 'zh' ? 'zh' : 'en'; } catch {}
 function setLanguage(value) {
   language = value;
@@ -8,12 +29,14 @@ function setLanguage(value) {
   document.querySelectorAll('[data-en][data-zh]').forEach(element => {
     element.textContent = element.dataset[value];
   });
-  languageButton.innerHTML = value === 'en' ? '中文 <span>↗</span>' : 'EN <span>↗</span>';
+  languageButton.innerHTML = `${detailIcon('globe')}<span>${value === 'en' ? '中文' : 'English'}</span>`;
   languageButton.setAttribute('aria-label', value === 'en' ? '切换到中文' : 'Switch to English');
   const closeButton = document.querySelector('.close-dialog');
-  if (closeButton) closeButton.textContent = value === 'en' ? 'Close ×' : '关闭 ×';
+  if (closeButton) closeButton.innerHTML = `<span>${value === 'en' ? 'Close' : '关闭'}</span>${detailIcon('×')}`;
   document.title = value === 'en' ? (document.body.dataset.titleEn || 'AHBIIOvO — Game & Interactive Experiences') : (document.body.dataset.titleZh || 'AHBIIOvO — 游戏开发与交互作品集');
   try { localStorage.setItem('portfolio-language', value); } catch {}
+  decorateSymbols();
+  document.dispatchEvent(new CustomEvent('portfolio:language-change'));
 }
 setLanguage(language);
 languageButton.addEventListener('click', () => setLanguage(language === 'en' ? 'zh' : 'en'));
@@ -27,11 +50,12 @@ function loadVideo(id) {
   if (!allowedVideos.has(id)) return;
   selectedVideo = id;
   const frame = document.createElement('iframe');
-  frame.src = `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(id)}&p=1&autoplay=0&danmaku=0&poster=1`;
+  // Official external player endpoint; HTTPS also works in local file previews.
+  frame.src = `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(id)}&autoplay=0`;
   frame.title = id === 'BV1oBssenEVH' ? 'FPS prototype — full demo (Bilibili)' : 'Magazine inspection and emergency reload animations (Bilibili)';
-  frame.allow = 'fullscreen; picture-in-picture; encrypted-media';
+  frame.scrolling = 'no';
+  frame.allow = 'fullscreen; picture-in-picture';
   frame.allowFullscreen = true;
-  frame.referrerPolicy = 'strict-origin-when-cross-origin';
   player.replaceChildren(frame);
   document.querySelector('#bilibili-link').href = `https://www.bilibili.com/video/${id}/`;
   videoButtons.forEach(button => {
