@@ -171,7 +171,7 @@
   ];
   let stretchHip={x:73,y:173};
   function animateStretch(elapsed){
-    const phase=clamp(elapsed/1.9,0,1);
+    const phase=clamp(elapsed/1.2,0,1);
     let k=0;while(k<stretchKeys.length-2&&phase>stretchKeys[k+1][0])k++;
     const [a,av]=stretchKeys[k],[b,bv]=stretchKeys[k+1];
     const u=smooth((phase-a)/(b-a));
@@ -473,7 +473,7 @@
     if (active !== name) {
       const sameDefaultBody=(name==='groom'&&active==='front')||(name==='front'&&active==='groom');
       const sameFlightBody=(name==='jump'&&active==='land')||(name==='land'&&active==='jump');
-      const duration = sameDefaultBody||sameFlightBody ? '0ms' : turning || (active === 'front' && moving) ? '45ms' : state === 'run' && previousState === 'run' ? '0ms' : previousState === 'sleep' ? '200ms' : '130ms';
+      const duration = sameDefaultBody||sameFlightBody ? '0ms' : turning || (active === 'front' && moving) ? '45ms' : state === 'run' && previousState === 'run' ? '0ms' : previousState === 'sleep' && state === 'stretch' ? '80ms' : previousState === 'sleep' ? '200ms' : '130ms';
       if (active) {
         groups[active].style.transitionDuration = duration;
         groups[active].classList.remove('is-visible');

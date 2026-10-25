@@ -72,7 +72,7 @@ document.querySelectorAll('[data-image]').forEach(button => {
   button.addEventListener('click', () => {
     document.querySelector('#dialog-image').src = button.dataset.image;
     document.querySelector('#dialog-image').alt = button.querySelector('img').alt;
-    document.querySelector('#dialog-caption').textContent = button.dataset.caption;
+    document.querySelector('#dialog-caption').textContent = (language === 'zh' ? button.dataset.captionZh : button.dataset.captionEn) || button.dataset.caption;
     imageDialog.showModal();
   });
 });

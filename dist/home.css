@@ -39,7 +39,7 @@ h1, h2, h3, p { margin: 0; }
 .language-button .icon { width: 20px; height: 20px; flex-basis: 20px; }
 .nav-github { margin-left: 5px; }
 
-.hero-playground { position: relative; isolation: isolate; }
+.cat-world, .hero-playground { position: relative; isolation: isolate; }
 .hero-playground::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(112deg, #202830 0%, #1d252d 43%, var(--page) 88%); mask-image: linear-gradient(#000 0%, #000 55%, transparent 100%); }
 .home-hero { position: relative; }
 .hero-content { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 295px; gap: 54px; align-items: end; padding-block: 92px 46px; }
@@ -64,7 +64,7 @@ h1, h2, h3, p { margin: 0; }
 .project-count { color: var(--quiet); font-size: 10px; letter-spacing: .1em; }
 .selected-work { padding-top: 34px; }
 
-/* Decorative, one-way platforms are measured from the actual title and divider. */
+/* One overlay spans the title and project cards; card links remain clickable. */
 .cat-stage { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
 .hero-cat { position: absolute; width: 102px; height: 86.31px; left: 0; top: 0; border: 0; padding: 0; background: transparent; pointer-events: auto; cursor: pointer; touch-action: manipulation; user-select: none; will-change: transform; }
 .hero-cat:focus-visible { outline-offset: 3px; border-radius: 40%; }
@@ -86,7 +86,7 @@ h1, h2, h3, p { margin: 0; }
 .hero-cat[data-state="reach"] .cat-reach-art { animation: cat-reach 850ms ease-in-out infinite; }
 .cat-reaching-paw { transform-origin: 144px 142px; }
 .hero-cat[data-state="reach"] .cat-reaching-paw { animation: paw-reach 425ms ease-in-out infinite alternate; }
-.hero-playground.is-offscreen .cat-art * { animation-play-state: paused; }
+.cat-world.is-offscreen .cat-art * { animation-play-state: paused; }
 @keyframes cat-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.99); } }
 @keyframes cat-blink { 0%, 42%, 46%, 100% { transform: scaleY(1); } 43%, 45% { transform: scaleY(.04); } }
 @keyframes cat-land { from { transform: translateY(-2px); } to { transform: translateY(0); } }

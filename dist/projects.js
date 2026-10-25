@@ -10,7 +10,7 @@ window.portfolioProjects = Object.freeze([
     image: { src: 'assets/museum-bells.webp', width: 702, height: 701, alt: 'Virtual Bianzhong bells in the AI-driven VR museum' },
     description: {
       en: 'Talk to an AI guide. Play ancient chime bells. A virtual exhibition connecting cultural heritage, speech and interaction.',
-      zh: '与 AI 导览员交谈，亲手敲响虚拟编钟。将文化遗产、语音对话与交互体验连接起来的 VR 展览。'
+      zh: '与 AI 导览员对话，用虚拟钟槌敲响编钟。在 VR 展览中体验文化遗产、语音对话与互动。'
     },
     role: { en: 'Core developer · IEEE VRW 2026', zh: '核心开发者 · IEEE VRW 2026' },
     tools: ['UE5', 'Convai', 'VR']
@@ -23,7 +23,7 @@ window.portfolioProjects = Object.freeze([
     image: { src: 'assets/fps-animation.webp', width: 743, height: 384, alt: 'First-person weapon animation from an independently developed FPS prototype' },
     description: {
       en: 'An independent FPS prototype, from Blender firearm animation to physical projectiles, destructible targets and hit reactions.',
-      zh: '独立开发的 FPS 原型。从 Blender 枪械动画，到物理弹体、可破坏靶块和按部位区分的命中反馈。'
+      zh: '独立开发的 FPS 原型，涵盖 Blender 枪械动画、实体弹丸、靶块破碎与不同身体部位的命中反馈。'
     },
     role: { en: 'Independent developer · Video demo', zh: '独立开发 · 视频演示' },
     tools: ['Blender', 'UE5']
@@ -39,6 +39,6 @@ window.portfolioProjects = Object.freeze([
       zh: '以监控视角为核心的解谜原型。观察多个摄像头画面，利用不同视角的信息操控第三人称角色。'
     },
     role: { en: 'Lead programmer · Multi-camera', zh: '主程序 · 多摄像头交互' },
-    tools: ['Camera systems', 'A*']
+    tools: ['UE5', 'Multi-camera']
   }
 ]);

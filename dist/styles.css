@@ -81,3 +81,18 @@
  .detail-page .interaction-loop{font-size:13px;gap:12px}.detail-page .project-next{margin-top:48px;gap:18px;padding-block:28px 40px;align-items:flex-start}.detail-page .next-link{max-width:62%}.detail-page .next-link strong{font-size:23px;gap:10px}
  .detail-page .project-next>.text-link{font-size:13px;white-space:normal}.detail-page .next-link .small-label{font-size:11px}.detail-page .footer{font-size:11px;gap:12px}
 }
+
+/* Keep each FPS implementation description with its own evidence image. */
+.detail-page .fps-features>article{display:flex;flex-direction:column;min-width:0}
+.detail-page .fps-features figure{margin-top:auto;padding-top:28px;min-width:0}
+.detail-page .fps-features img{aspect-ratio:1.65;object-fit:cover}
+.detail-page .fps-features figcaption{min-height:3.4em}
+/* Preserve the text-and-arrow strip, with longer shafts and a wider reading scale. */
+.detail-page .interaction-loop{--flow-font:16px;--flow-arrow-width:64px;justify-content:center;gap:clamp(16px,2.6vw,34px);font-size:var(--flow-font)}
+html[lang^="zh"] .detail-page .interaction-loop{--flow-font:18px}
+.detail-page .interaction-loop>span[aria-hidden]{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.detail-page .interaction-loop .flow-arrow{width:var(--flow-arrow-width);height:24px;flex:none}
+@media(max-width:1000px){.detail-page .interaction-loop{display:grid;grid-template-columns:minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr);gap:18px 12px;text-align:center}.detail-page .interaction-loop>span:nth-child(4){display:none}.interaction-loop>span:nth-child(5){flex-basis:auto}}
+@media(max-width:700px){.detail-page .interaction-loop{--flow-font:15px;--flow-arrow-width:52px}html[lang^="zh"] .detail-page .interaction-loop{--flow-font:17px}}
+@media(max-width:380px){.detail-page .interaction-loop{--flow-arrow-width:44px;column-gap:10px}html[lang^="zh"] .detail-page .interaction-loop{--flow-font:16px}}
+@media(max-width:700px){.detail-page .fps-features figure{padding-top:20px}.detail-page .fps-features figcaption{min-height:0}}

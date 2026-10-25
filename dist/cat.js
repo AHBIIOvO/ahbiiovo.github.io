@@ -1,13 +1,15 @@
 'use strict';
 
-// Feet use stage coordinates; platforms are one-way surfaces, never cursor tethers.
+// Feet use world coordinates. Each project card is one moving, one-way plank.
+// Its image and text do not create separate collision surfaces.
 (() => {
-  const world = document.querySelector('#hero-playground');
+  const world = document.querySelector('#cat-world');
   const cat = document.querySelector('#hero-cat');
   if (!world || !cat) return;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const mouse = matchMedia('(hover: hover) and (pointer: fine)');
   const compact = matchMedia('(max-width: 600px)');
+  const wakeDelay = .4;
   const gravity = 1500;
   const maxRise = 420;
   const maxSpeed = 1040;
@@ -21,7 +23,7 @@
   let bounds, width, height;
   let frame = 0, measureFrame = 0, last = 0, visible = true;
   let awake = false, age = 0, nextDecision = 2.6, nextGroom = 9, groomUntil = 0, landUntil = 0;
-  let wakeAge = mouse.matches && !compact.matches ? Infinity : document.readyState === 'complete' ? 1 : Infinity;
+  let wakeAge = mouse.matches && !compact.matches ? Infinity : document.readyState === 'complete' ? wakeDelay : Infinity;
   let waking = false, stretchUntil = 0;
   let target = null, jump = null, destination = null, nextPointerDecision = 0;
   let reachingFor = 0;
@@ -30,6 +32,7 @@
   let petUntil = 0, petPending = false, lastPetClick = -Infinity, stillPetTimer;
   const petParticles = new Set();
   const roaming = () => mouse.matches && !compact.matches && !reduced.matches;
+  const worldInset = () => width / 2;
 
   function pose(name) {
     if (cat.dataset.state !== name) cat.dataset.state = name;
@@ -135,6 +138,7 @@
     // One walking region spans both words; its only walkable top is above Games.
     games.left = Math.min(games.left, interactiveWord.left);
     games.right = Math.max(games.right, interactiveWord.right);
+    const previousAnchor = body.ground?.id || jump?.source.id;
     platforms = [
       games,
       surface('.hero-experiences', 'experiences', titleSize * .13),
@@ -142,10 +146,14 @@
       surface('#project-count', 'count', 1)
     ];
     const heading = document.querySelector('.section-heading').getBoundingClientRect();
+    platforms.push({ id: 'divider', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
+    const cards = [...document.querySelectorAll('.project-card')].map((element, index) => ({ id: `card-${element.dataset.project || index}`, card: true, element }));
+    platforms.push(...cards);
     platforms.push({ id: 'floor', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
-    const anchor = platforms.find(p => p.id === (!awake || !roaming() ? 'experiences' : body.ground?.id)) || platforms.at(-1);
+    refreshCards();
+    const anchor = platforms.find(p => p.id === (!awake || !roaming() ? 'experiences' : previousAnchor)) || platforms.find(p => p.id === 'experiences');
     body.x = clamp(!awake || !roaming() ? (anchor.left + anchor.right) / 2 : body.x, anchor.left + 9, anchor.right - 9);
-    body.x = clamp(body.x, width / 2, bounds.width - width / 2);
+    body.x = clamp(body.x, worldInset(), bounds.width - worldInset());
     body.feet = anchor.y;
     body.vx = body.vy = 0;
     reachingFor = 0;
@@ -160,10 +168,27 @@
     if (!measureFrame) measureFrame = requestAnimationFrame(measure);
   }
 
+  function refreshCards() {
+    bounds = world.getBoundingClientRect();
+    const cards = platforms.filter(p => p.card);
+    for (const card of cards) {
+      const rect = card.element.getBoundingClientRect();
+      Object.assign(card, { left: rect.left - bounds.left, right: rect.right - bounds.left, y: rect.top - bounds.top, bottom: rect.bottom - bounds.top });
+    }
+    // The final plank is also the fallback for an otherwise missed landing.
+    const floor = platforms.find(p => p.id === 'floor');
+    if (floor && cards.length) {
+      const lastCard = cards.reduce((last, card) => card.y > last.y ? card : last);
+      Object.assign(floor, { left: lastCard.left, right: lastCard.right, y: lastCard.y });
+    }
+    if (body.ground?.card || body.ground?.id === 'floor') body.feet = body.ground.y;
+  }
+
   // A launch has enough height to clear the destination, then lands on its top.
   function trajectory(from, to, startX, aimX = startX) {
     const rise = from.y - to.y;
-    if (rise > maxRise) return null;
+    const cardRise = Math.max(maxRise, ...platforms.filter(p => p.card).map(p => p.bottom - p.y + 120));
+    if (rise > (from.card || to.card ? cardRise : maxRise)) return null;
     const vy = rise < -4 ? 0 : -Math.sqrt(2 * gravity * Math.max(48, rise + 38));
     const discriminant = vy * vy + 2 * gravity * (to.y - from.y);
     if (discriminant < 0) return null;
@@ -184,7 +209,6 @@
       for (const next of platforms) {
         if (visited.has(next.id)) continue;
         const startX = clamp(node.x, node.platform.left + 12, node.platform.right - 12);
-        // A one-way drop starts here, ignoring the departure surface until landing.
         const down = next.y > node.platform.y + 4;
         const nextCenter = (next.left + next.right) / 2;
         const launchX = down ? node.x
@@ -208,7 +232,8 @@
       const x = followAnchor.x - rect.left;
       const y = followAnchor.y - rect.top;
       destination = platforms.reduce((best, p) => {
-        const distance = Math.abs(y - p.y) + Math.abs(x - clamp(x, p.left, p.right)) * .7;
+        const vertical = p.card ? Math.abs(y - clamp(y, p.y, p.bottom)) : Math.abs(y - p.y);
+        const distance = vertical + Math.abs(x - clamp(x, p.left, p.right)) * .7;
         return !best || distance < best.distance ? { p, distance } : best;
       }, null).p;
       target = clamp(x, destination.left + 14, destination.right - 14);
@@ -227,9 +252,10 @@
     const dt = last ? Math.min((now - last) / 1000, .025) : 1 / 60;
     last = now;
     age += dt;
+    refreshCards();
     if (!awake && age >= wakeAge && !waking) {
       waking = true;
-      stretchUntil = age + 1.9;
+      stretchUntil = age + 1.2;
       pose('stretch');
     }
     if (waking && age >= stretchUntil) {
@@ -324,7 +350,7 @@
             pose('land');
           }
         }
-        // The divider is also a full-width safety floor.
+        // Keep a missed jump on the final plank.
         const floor = platforms.at(-1);
         if (body.feet > floor.y) {
           body.feet = floor.y;
@@ -353,7 +379,7 @@
   document.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse') return;
     if (age < petUntil) return;
-    if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + 1;
+    if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + wakeDelay;
     const movedBeyondRadius = !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
     if (movedBeyondRadius) {
       pointerRevision++;
@@ -375,8 +401,21 @@
     }
     draw();
   }, { passive: true });
+  window.addEventListener('scroll', () => {
+    if (!pointer.known) return;
+    const rect = world.getBoundingClientRect();
+    pointer.inside = pointer.x >= rect.left && pointer.x <= rect.right
+      && pointer.y >= rect.top && pointer.y <= rect.bottom;
+    if (awake && roaming() && age >= petUntil) {
+      followAnchor.x = pointer.x;
+      followAnchor.y = pointer.y;
+      pointerRevision++;
+      pendingPointerTarget = true;
+      requestTick();
+    }
+  }, { passive: true });
   window.addEventListener('load', () => {
-    if (!mouse.matches || compact.matches) wakeAge = age + 1;
+    if (!mouse.matches || compact.matches) wakeAge = age + wakeDelay;
     requestTick();
   }, { once: true });
   new ResizeObserver(requestMeasure).observe(world);
