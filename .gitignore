@@ -8,3 +8,4 @@ scripts/
 *.pdf
 *.ppt
 *.pptx
+/README.local.md
