@@ -28,8 +28,10 @@
   const defs = create('defs');
   art.append(defs);
   // Source-space tail windows remove the old tails, leaving the supplied bodies.
+  // Follow the front tail all the way to its root so diagonal remnants cannot
+  // show beside the cheek or torso (the grooming pose reuses this same mask).
   const tails = {
-    front: [163, 192, 1, '178,24 212,24 212,236 139,236 139,207 160,193 178,174'],
+    front: [163, 192, 1, '178,24 212,24 212,236 139,236 139,204 141,200 146,195 152,190 158,184 164,177 170,169 175,160 178,151'],
     sleep: [68, 196, -1, ''],
     stretch: [69, 169, -1, '28,524 72,524 72,575 66,598 55,604 28,596'],
     groom: [148, 193, 1, '987,1006 1033,1006 1033,1042 983,1042 983,1026'],
@@ -154,7 +156,14 @@
   const stretchToes=create('path',{fill:'none',stroke:'#45484a','stroke-width':1.5});
   const stretchHead=create('g',{class:'cat-stretch-head'});
   const headWindow=create('svg',{x:-60,y:-118,width:121,height:121,viewBox:'54 281 121 121',overflow:'hidden'});
-  [...crops.run0.children].forEach(child=>headWindow.append(child.cloneNode(true)));
+  // The rectangle also contains the source body's shoulder. Keep only the
+  // head silhouette, including the chin, before rotating this patch.
+  const stretchHeadClip=create('clipPath',{id:'cat-stretch-head-outline',clipPathUnits:'userSpaceOnUse'});
+  stretchHeadClip.append(create('path',{d:'M54 281H175V397H128Q93 398 73 386L54 378Z'}));
+  defs.append(stretchHeadClip);
+  const stretchHeadOnly=create('g',{'clip-path':'url(#cat-stretch-head-outline)'});
+  [...crops.run0.children].forEach(child=>stretchHeadOnly.append(child.cloneNode(true)));
+  headWindow.append(stretchHeadOnly);
   stretchHead.append(headWindow);
   stretchRig.append(farBack,farFront,stretchTorso,nearBack,nearFront,stretchHead,stretchToes);
   groups.stretch.append(stretchRig);
@@ -192,13 +201,18 @@
 
   // The same supplied head/eyes ride a four-legged flight rig. The chest and
   // forepaws lead the descent; the hips stay high instead of rotating a sprite.
+  const flightHeadClip=create('clipPath',{id:'cat-flight-head-outline',clipPathUnits:'userSpaceOnUse'});
+  flightHeadClip.append(create('path',{d:'M749 466H881V592H810Q782 590 760 580L749 576Z'}));
+  defs.append(flightHeadClip);
   const flightRigs=['jump','land'].map(name=>{
     const rig=create('g',{class:'cat-flight-rig'});
     const backFar=limb(11,'#08090a'),frontFar=limb(10,'#08090a');
     const torso=create('path',{fill:'#0b0b0c'}),backNear=limb(14),frontNear=limb(13);
     const head=create('g',{class:'cat-flight-head','data-head-scale':1.08});
     const window=create('svg',{x:-66,y:-128,width:132,height:132,viewBox:'749 466 132 132',overflow:'hidden'});
-    [...crops.jump.children].forEach(child=>window.append(child.cloneNode(true)));
+    const headOnly=create('g',{'clip-path':'url(#cat-flight-head-outline)'});
+    [...crops.jump.children].forEach(child=>headOnly.append(child.cloneNode(true)));
+    window.append(headOnly);
     head.append(window);
     const toes=create('path',{fill:'none',stroke:'#45484a','stroke-width':1.5,'stroke-linecap':'round'});
     rig.append(backFar,frontFar,torso,backNear,frontNear,head,toes);

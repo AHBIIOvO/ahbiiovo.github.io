@@ -35,8 +35,7 @@
   let frame=0,lastWidth=-1;
   const words=text=>text.match(/[A-Za-z0-9]+(?:[-’'][A-Za-z0-9]+)*/g)||[];
   function texts(item){
-    return item.matches('.project-nav-end')?[item.firstElementChild]
-      :[...item.querySelectorAll('.small-label,strong,.jump-content>span')];
+    return [...item.querySelectorAll('.small-label,strong,.jump-content>span')];
   }
   function fits(){
     const bar=items[0].getBoundingClientRect();
