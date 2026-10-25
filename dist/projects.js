@@ -20,7 +20,7 @@ window.portfolioProjects = Object.freeze([
     title: 'First-Person Shooter',
     type: 'GAMEPLAY',
     href: 'fps.html',
-    image: { src: 'assets/fps-animation.webp', width: 743, height: 384, alt: 'First-person weapon animation from an independently developed FPS prototype' },
+    image: { src: 'assets/fps-animation.webp', width: 743, height: 384, crop: { x: 3, y: 31, width: 580, height: 264 }, alt: 'First-person weapon animation in the FPS prototype' },
     description: {
       en: 'An independent FPS prototype, from Blender firearm animation to physical projectiles, destructible targets and hit reactions.',
       zh: '独立开发的 FPS 原型，涵盖 Blender 枪械动画、实体弹丸、靶块破碎与不同身体部位的命中反馈。'
@@ -43,13 +43,13 @@ window.portfolioProjects = Object.freeze([
   },
   {
     id: 'campus',
-    title: 'BNBU Campus',
+    title: 'BNBU 3D Campus',
     type: 'WEB 3D',
     href: 'campus.html',
-    image: { src: 'assets/campus-overview.webp', width: 1600, height: 840, alt: 'BNBU campus scan with library and gymnasium reconstructions' },
+    image: { src: 'assets/campus-overview.webp?v=20261026', width: 1590, height: 875, alt: 'BNBU campus scan with library and gymnasium reconstructions' },
     description: {
-      en: 'An interactive Three.js campus viewer, combining an optimized aerial scan with locally reconstructed buildings and reversible comparisons.',
-      zh: '基于 Three.js 的校园三维浏览页面，将优化后的航拍扫描与局部建筑重建整合，并提供可逆的模型对比。'
+      en: 'From drone photogrammetry to a Three.js campus viewer: mesh optimization, selected building reconstruction and scan/model comparisons.',
+      zh: '从无人机摄影测量到 Three.js 校园浏览：网格优化、局部建筑重建，以及扫描与重建模型的对比。'
     },
     role: { en: 'Web development · Model optimization', zh: '网页开发 · 模型优化' },
     tools: ['Three.js', 'Web 3D']

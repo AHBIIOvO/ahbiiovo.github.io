@@ -117,3 +117,9 @@ html[lang^="zh"] .detail-page .interaction-loop{--flow-font:18px}
 .campus-gallery img{aspect-ratio:40/21;object-fit:contain}
 .campus-building-copy{margin-top:34px}
 @media(max-width:700px){.campus-building{margin-top:44px;padding-top:24px}.detail-page .campus-gallery{grid-template-columns:1fr;gap:28px}.campus-building-copy{margin-top:28px}}
+
+/* The latest library case uses a reference photograph and matching model views. */
+.detail-page .campus-library-comparison{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.campus-library-comparison img{aspect-ratio:4/3;object-fit:contain}
+.campus-comparison-note{font-size:13px;line-height:1.75;margin-top:18px}
+@media(max-width:700px){.detail-page .campus-library-comparison{grid-template-columns:1fr;gap:28px}}

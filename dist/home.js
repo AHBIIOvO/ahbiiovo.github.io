@@ -24,8 +24,31 @@
 
     const media = document.createElement('div');
     media.className = 'card-media';
-    const image = document.createElement('img');
-    Object.assign(image, { src: project.image.src, alt: project.image.alt, width: project.image.width, height: project.image.height, loading: 'lazy', decoding: 'async' });
+    const crop = project.image.crop;
+    const ns = 'http://www.w3.org/2000/svg';
+    const image = crop ? document.createElementNS(ns, 'svg') : document.createElement('img');
+    if (crop) {
+      // Crop only the homepage viewport; retain the source capture on the detail
+      // page. The edge extensions use the same game-only rectangle.
+      image.classList.add('card-crop');
+      image.setAttribute('viewBox', `${crop.x} ${crop.y} ${crop.width} ${crop.height}`);
+      image.setAttribute('role', 'img');
+      image.setAttribute('aria-label', project.image.alt);
+      const source = document.createElementNS(ns, 'image');
+      source.setAttribute('href', project.image.src);
+      source.setAttribute('width', project.image.width);
+      source.setAttribute('height', project.image.height);
+      const clip = document.createElementNS(ns, 'clipPath');
+      clip.id = `card-crop-${project.id}`;
+      clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+      const rect = document.createElementNS(ns, 'rect');
+      Object.entries(crop).forEach(([key, value]) => rect.setAttribute(key, value));
+      clip.append(rect);
+      source.setAttribute('clip-path', `url(#${clip.id})`);
+      image.append(clip, source);
+    } else {
+      Object.assign(image, { src: project.image.src, alt: project.image.alt, width: project.image.width, height: project.image.height, loading: 'lazy', decoding: 'async' });
+    }
     const edgeLeft = document.createElement('span');
     const edgeRight = document.createElement('span');
     [edgeLeft, edgeRight].forEach((edge, side) => {
@@ -33,7 +56,7 @@
       edge.setAttribute('aria-hidden', 'true');
       const ns = 'http://www.w3.org/2000/svg';
       const slice = document.createElementNS(ns, 'svg');
-      slice.setAttribute('viewBox', `${side ? project.image.width - 1 : 0} 0 1 ${project.image.height}`);
+      slice.setAttribute('viewBox', crop ? `${side ? crop.x + crop.width - 1 : crop.x} ${crop.y} 1 ${crop.height}` : `${side ? project.image.width - 1 : 0} 0 1 ${project.image.height}`);
       slice.setAttribute('preserveAspectRatio', 'none');
       const pixels = document.createElementNS(ns, 'image');
       pixels.setAttribute('href', project.image.src);
@@ -80,7 +103,7 @@
     content.append(kicker, title, description, tools, bottom);
     card.append(media, content, next);
     function measureImage() {
-      const aspect = project.image.width / project.image.height;
+      const aspect = crop ? crop.width / crop.height : project.image.width / project.image.height;
       const renderedWidth = Math.min(media.clientWidth, media.clientHeight * aspect);
       media.style.setProperty('--image-gap', `${Math.max(0, (media.clientWidth - renderedWidth) / 2)}px`);
       media.style.setProperty('--image-width', `${renderedWidth}px`);

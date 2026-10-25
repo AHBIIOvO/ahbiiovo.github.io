@@ -506,4 +506,23 @@
     previousState = state;
   };
   window.renderPortfolioCat({ state: 'sleep', time: 0 });
+
+  // Procedural parts (especially the tail) must not appear before the raster
+  // body and every SVG image instance have loaded. Register in this same task,
+  // before image events can fire, and also wait for bitmap decoding.
+  const svgImagesReady = Promise.all([...art.querySelectorAll('image')].map(node =>
+    new Promise((resolve, reject) => {
+      node.addEventListener('load', resolve, { once: true });
+      node.addEventListener('error', () => reject(new Error('Cat SVG image failed to load')), { once: true });
+    })));
+  const bitmap = new Image();
+  const bitmapReady = new Promise((resolve, reject) => {
+    bitmap.onload = () => {
+      if (bitmap.decode) bitmap.decode().then(resolve, reject);
+      else resolve();
+    };
+    bitmap.onerror = () => reject(new Error('Cat artwork failed to load'));
+    bitmap.src = source;
+  });
+  window.portfolioCatReady = Promise.all([svgImagesReady, bitmapReady]);
 })();

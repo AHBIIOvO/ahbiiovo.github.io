@@ -22,6 +22,7 @@
   let platforms = [];
   let bounds, width, height;
   let frame = 0, measureFrame = 0, last = 0, visible = true;
+  let resourcesReady = false;
   let awake = false, age = 0, nextDecision = 2.6, nextGroom = 9, groomUntil = 0, landUntil = 0;
   let wakeAge = mouse.matches && !compact.matches ? Infinity : document.readyState === 'complete' ? wakeDelay : Infinity;
   let waking = false, stretchUntil = 0;
@@ -31,7 +32,9 @@
   let pendingPointerTarget = false;
   let petUntil = 0, petPending = false, lastPetClick = -Infinity, stillPetTimer;
   const petParticles = new Set();
-  const roaming = () => mouse.matches && !compact.matches && !reduced.matches;
+  const titleOnly = () => !mouse.matches || compact.matches;
+  const pointerFollowing = () => !titleOnly() && !reduced.matches;
+  const roaming = () => !reduced.matches;
   const worldInset = () => width / 2;
 
   function pose(name) {
@@ -111,7 +114,7 @@
     const jumpHeight = jump ? Math.max(jump.vy ** 2 / (2 * gravity), Math.abs(jump.platform.y - jump.source.y)) : 0;
     const jumpLift = jump ? Math.max(0, jump.source.y - body.feet) : 0;
     window.renderPortfolioCat?.({ state: cat.dataset.state, time: age, dt, dx, dy, vx: body.vx, vy: body.vy, jumpHeight, jumpLift, jumpDrop: !!jump?.drop, stride: body.stride, petRemaining: Math.max(0, petUntil - age), still: reduced.matches });
-    if (!awake || !pointer.known) return;
+    if (!awake || !pointer.known || !pointerFollowing()) return;
     const length = Math.max(65, Math.hypot(dx, dy));
     const blend = 1 - Math.exp(-20 * dt);
     // Both eyes receive one shared gaze vector, so they never converge inward.
@@ -139,17 +142,15 @@
     games.left = Math.min(games.left, interactiveWord.left);
     games.right = Math.max(games.right, interactiveWord.right);
     const previousAnchor = body.ground?.id || jump?.source.id;
-    platforms = [
-      games,
-      surface('.hero-experiences', 'experiences', titleSize * .13),
-      surface('#work-title', 'work', 1),
-      surface('#project-count', 'count', 1)
-    ];
-    const heading = document.querySelector('.section-heading').getBoundingClientRect();
-    platforms.push({ id: 'divider', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
-    const cards = [...document.querySelectorAll('.project-card')].map((element, index) => ({ id: `card-${element.dataset.project || index}`, card: true, element }));
-    platforms.push(...cards);
-    platforms.push({ id: 'floor', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
+    platforms = [games, surface('.hero-experiences', 'experiences', titleSize * .13)];
+    if (!titleOnly()) {
+      platforms.push(surface('#work-title', 'work', 1), surface('#project-count', 'count', 1));
+      const heading = document.querySelector('.section-heading').getBoundingClientRect();
+      platforms.push({ id: 'divider', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
+      const cards = [...document.querySelectorAll('.project-card')].map((element, index) => ({ id: `card-${element.dataset.project || index}`, card: true, element }));
+      platforms.push(...cards);
+      platforms.push({ id: 'floor', left: heading.left - bounds.left, right: heading.right - bounds.left, y: heading.bottom - bounds.top - 1 });
+    }
     refreshCards();
     const anchor = platforms.find(p => p.id === (!awake || !roaming() ? 'experiences' : previousAnchor)) || platforms.find(p => p.id === 'experiences');
     body.x = clamp(!awake || !roaming() ? (anchor.left + anchor.right) / 2 : body.x, anchor.left + 9, anchor.right - 9);
@@ -227,7 +228,7 @@
 
   function chooseTarget(usePointer) {
     if (!body.ground || !roaming()) return;
-    if (usePointer && pointer.inside) {
+    if (usePointer && pointerFollowing() && pointer.inside) {
       const rect = world.getBoundingClientRect();
       const x = followAnchor.x - rect.left;
       const y = followAnchor.y - rect.top;
@@ -238,7 +239,7 @@
       }, null).p;
       target = clamp(x, destination.left + 14, destination.right - 14);
     } else {
-      const choices = platforms.filter(p => ['games', 'experiences'].includes(p.id) && p.id !== body.ground.id);
+      const choices = platforms.filter(p => ['games', 'experiences'].includes(p.id) && (titleOnly() || p.id !== body.ground.id));
       destination = choices[Math.floor(Math.random() * choices.length)];
       target = destination.left + (destination.right - destination.left) * (.25 + Math.random() * .5);
     }
@@ -269,7 +270,7 @@
     if (awake && age < petUntil) {
       pose('belly');
     } else if (awake && roaming()) {
-      if (pendingPointerTarget && pointer.inside && body.ground && age >= nextPointerDecision) {
+      if (pointerFollowing() && pendingPointerTarget && pointer.inside && body.ground && age >= nextPointerDecision) {
         chooseTarget(true);
         pendingPointerTarget = false;
         nextPointerDecision = age + .16;
@@ -281,7 +282,7 @@
           nextDecision = age + 2.3;
           nextGroom = age + 15;
           destination = null;
-        } else chooseTarget(pointer.inside);
+        } else chooseTarget(pointerFollowing() && pointer.inside);
       }
       if (body.ground) {
         let runTo = body.x;
@@ -293,7 +294,7 @@
         } else if (destination) runTo = target;
         const dx = runTo - body.x;
         if (step?.down) body.vx = 0;
-        const desired = age < landUntil || Math.abs(dx) < 2 ? 0 : Math.sign(dx) * Math.min(480, Math.abs(dx) * 16);
+        const desired = age < landUntil || Math.abs(dx) < 2 ? 0 : Math.sign(dx) * Math.min(titleOnly() ? 110 : 480, Math.abs(dx) * 16);
         body.vx += clamp(desired - body.vx, -3000 * dt, 3000 * dt);
         if (Math.abs(dx) < 2 && Math.abs(body.vx) < 18) body.vx = 0;
         const advance = body.vx * dt;
@@ -316,7 +317,7 @@
           const pointerX = followAnchor.x - rect.left;
           const pointerY = followAnchor.y - rect.top;
           const closest = !step && Math.abs(dx) < 4 && Math.abs(body.vx) < 18;
-          const wantsToReach = pointer.known && pointer.inside && closest
+          const wantsToReach = pointerFollowing() && pointer.known && pointer.inside && closest
             && pointerY < body.feet - height * .58
             && Math.abs(pointerX - body.x) < width * .9;
           reachingFor = wantsToReach && reachedRevision !== pointerRevision ? reachingFor + dt : 0;
@@ -361,7 +362,7 @@
         }
       }
     } else if (awake) {
-      // Touch/compact screens keep the cat in place, but retain quiet actions.
+      // Reduced-motion preference retains a quiet, stationary pose.
       if (age >= nextGroom) {
         groomUntil = age + 2.1;
         nextGroom = age + 10 + Math.random() * 4;
@@ -373,11 +374,11 @@
   }
 
   function requestTick() {
-    if (!frame && visible && !document.hidden && !reduced.matches) frame = requestAnimationFrame(tick);
+    if (resourcesReady && !frame && visible && !document.hidden && !reduced.matches) frame = requestAnimationFrame(tick);
   }
 
   document.addEventListener('pointermove', event => {
-    if (event.pointerType !== 'mouse') return;
+    if (!resourcesReady || !pointerFollowing() || event.pointerType !== 'mouse') return;
     if (age < petUntil) return;
     if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + wakeDelay;
     const movedBeyondRadius = !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
@@ -402,7 +403,7 @@
     draw();
   }, { passive: true });
   window.addEventListener('scroll', () => {
-    if (!pointer.known) return;
+    if (!pointer.known || !pointerFollowing()) return;
     const rect = world.getBoundingClientRect();
     pointer.inside = pointer.x >= rect.left && pointer.x <= rect.right
       && pointer.y >= rect.top && pointer.y <= rect.bottom;
@@ -443,4 +444,15 @@
   }));
   if (reduced.matches) { awake = true; pose('idle'); }
   measure();
+  window.portfolioCatReady?.then(() => {
+    resourcesReady = true;
+    if (!mouse.matches || compact.matches) wakeAge = age + wakeDelay;
+    measure();
+    // Let SVG masks and the first positioned pose paint before revealing all
+    // parts together. Keep the complete cat hidden if an asset fails to load.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      cat.dataset.ready = 'true';
+      cat.style.visibility = 'visible';
+    }));
+  }).catch(() => { cat.dataset.ready = 'failed'; });
 })();
