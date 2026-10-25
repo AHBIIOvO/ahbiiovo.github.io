@@ -83,3 +83,28 @@ imageDialog?.addEventListener('click', event => {
   }
 });
 document.querySelector('#year').textContent = new Date().getFullYear();
+
+// Keep the horizontal loop only while every label fits on one line.
+// The compact class is present in HTML as a no-script fallback.
+(() => {
+  const flow = document.querySelector('.interaction-loop');
+  if (!flow) return;
+  const steps = [...flow.querySelectorAll('.flow-step')];
+  let frame = 0, lastWidth = -1;
+  function fit() {
+    frame = 0;
+    if (!flow.clientWidth) return;
+    flow.classList.remove('is-compact');
+    const tooNarrow = steps.some(step => step.scrollWidth > step.clientWidth + .5);
+    flow.classList.toggle('is-compact', tooNarrow);
+  }
+  function schedule() { if (!frame) frame = requestAnimationFrame(fit); }
+  new ResizeObserver(entries => {
+    const width = entries[0].contentRect.width;
+    if (Math.abs(width - lastWidth) > .5) { lastWidth = width; schedule(); }
+  }).observe(flow);
+  window.addEventListener('resize', schedule, { passive: true });
+  document.addEventListener('portfolio:language-change', schedule);
+  document.fonts.ready.then(schedule);
+  schedule();
+})();

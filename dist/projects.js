@@ -40,5 +40,18 @@ window.portfolioProjects = Object.freeze([
     },
     role: { en: 'Lead programmer · Multi-camera', zh: '主程序 · 多摄像头交互' },
     tools: ['UE5', 'Multi-camera']
+  },
+  {
+    id: 'campus',
+    title: 'BNBU Campus',
+    type: 'WEB 3D',
+    href: 'campus.html',
+    image: { src: 'assets/campus-overview.webp', width: 1600, height: 840, alt: 'BNBU campus scan with library and gymnasium reconstructions' },
+    description: {
+      en: 'An interactive Three.js campus viewer, combining an optimized aerial scan with locally reconstructed buildings and reversible comparisons.',
+      zh: '基于 Three.js 的校园三维浏览页面，将优化后的航拍扫描与局部建筑重建整合，并提供可逆的模型对比。'
+    },
+    role: { en: 'Web development · Model optimization', zh: '网页开发 · 模型优化' },
+    tools: ['Three.js', 'Web 3D']
   }
 ]);

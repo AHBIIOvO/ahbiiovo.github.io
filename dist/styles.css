@@ -87,12 +87,33 @@
 .detail-page .fps-features figure{margin-top:auto;padding-top:28px;min-width:0}
 .detail-page .fps-features img{aspect-ratio:1.65;object-fit:cover}
 .detail-page .fps-features figcaption{min-height:3.4em}
-/* Preserve the text-and-arrow strip, with longer shafts and a wider reading scale. */
-.detail-page .interaction-loop{--flow-font:16px;--flow-arrow-width:64px;justify-content:center;gap:clamp(16px,2.6vw,34px);font-size:var(--flow-font)}
+/* Read left-to-right on desktop, clockwise in the compact two-row layout. */
+.detail-page .interaction-loop{--flow-font:16px;--flow-arrow-width:64px;--flow-gap:clamp(16px,2.6vw,34px);--flow-end-inset:calc((100% - 3 * var(--flow-arrow-width) - 6 * var(--flow-gap)) / 8);position:relative;display:grid;grid-template-columns:minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr);gap:0 var(--flow-gap);padding-bottom:56px;font-size:var(--flow-font);text-align:center}
 html[lang^="zh"] .detail-page .interaction-loop{--flow-font:18px}
-.detail-page .interaction-loop>span[aria-hidden]{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.detail-page .interaction-loop>.flow-step{display:block;min-width:0;color:#b7b8b3;flex-basis:auto;white-space:nowrap}
+.detail-page .interaction-loop>.flow-connector{display:flex;align-items:center;justify-content:center;line-height:0;color:#666}
 .detail-page .interaction-loop .flow-arrow{width:var(--flow-arrow-width);height:24px;flex:none}
-@media(max-width:1000px){.detail-page .interaction-loop{display:grid;grid-template-columns:minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr);gap:18px 12px;text-align:center}.detail-page .interaction-loop>span:nth-child(4){display:none}.interaction-loop>span:nth-child(5){flex-basis:auto}}
+.detail-page .interaction-loop>.flow-read-arrow{position:absolute;left:var(--flow-end-inset);right:var(--flow-end-inset);bottom:22px;height:20px;border:1.5px solid currentColor;border-top:0;border-radius:0 0 3px 3px}
+.detail-page .flow-read-arrow::before{content:"";position:absolute;left:-4.5px;top:1px;width:7px;height:7px;border-top:1.5px solid currentColor;border-left:1.5px solid currentColor;transform:rotate(45deg)}
+.detail-page .flow-read-arrow>.flow-arrow{display:none}
+ .detail-page .interaction-loop.is-compact{grid-template-columns:minmax(0,1fr) var(--flow-arrow-width) minmax(0,1fr);grid-template-rows:auto 40px auto;gap:10px 12px;padding-block:24px}
+ .detail-page .interaction-loop.is-compact .flow-observe{grid-area:1/1}.detail-page .interaction-loop.is-compact .flow-observe-arrow{grid-area:1/2}.detail-page .interaction-loop.is-compact .flow-choose{grid-area:1/3}
+ .detail-page .interaction-loop.is-compact .flow-choose-arrow{grid-area:2/3;height:40px}.detail-page .interaction-loop.is-compact .flow-control{grid-area:3/3}.detail-page .interaction-loop.is-compact .flow-control-arrow{grid-area:3/2}.detail-page .interaction-loop.is-compact .flow-read{grid-area:3/1}
+ .detail-page .interaction-loop.is-compact .flow-choose-arrow>.flow-arrow{width:40px;transform:rotate(90deg)}
+ .detail-page .interaction-loop.is-compact .flow-control-arrow>.flow-arrow{transform:rotate(180deg)}
+ .detail-page .interaction-loop.is-compact>.flow-read-arrow{position:static;grid-area:2/1;height:40px;border:0;border-radius:0}
+ .detail-page .interaction-loop.is-compact .flow-read-arrow::before{display:none}
+ .detail-page .interaction-loop.is-compact .flow-read-arrow>.flow-arrow{display:block;width:40px;transform:rotate(-90deg)}
+ .detail-page .interaction-loop.is-compact>.flow-step{white-space:normal}
 @media(max-width:700px){.detail-page .interaction-loop{--flow-font:15px;--flow-arrow-width:52px}html[lang^="zh"] .detail-page .interaction-loop{--flow-font:17px}}
 @media(max-width:380px){.detail-page .interaction-loop{--flow-arrow-width:44px;column-gap:10px}html[lang^="zh"] .detail-page .interaction-loop{--flow-font:16px}}
 @media(max-width:700px){.detail-page .fps-features figure{padding-top:20px}.detail-page .fps-features figcaption{min-height:0}}
+
+/* Campus project uses the same reading scale, galleries and external-link gesture. */
+.detail-page .campus-visit{margin-top:24px}
+.campus-building{margin-top:64px;padding-top:32px;border-top:1px solid var(--line)}
+.campus-building>.small-label{margin-bottom:14px}
+.campus-building>h2{font-size:clamp(28px,3vw,40px);margin-bottom:28px;line-height:1.2}
+.campus-gallery img{aspect-ratio:40/21;object-fit:contain}
+.campus-building-copy{margin-top:34px}
+@media(max-width:700px){.campus-building{margin-top:44px;padding-top:24px}.detail-page .campus-gallery{grid-template-columns:1fr;gap:28px}.campus-building-copy{margin-top:28px}}
