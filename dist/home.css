@@ -218,11 +218,17 @@ h1, h2, h3, p { margin: 0; }
  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* Extend only the outermost image columns; the central screenshot stays intact. */
-.media-edge { position: absolute; top: 0; bottom: 0; width: calc(var(--image-gap, 0px) + 5px); overflow: hidden; opacity: .52; }
+/* Extend the outermost row or column only into the actual letterboxing. */
+.media-edge { display: none; position: absolute; overflow: hidden; opacity: .52; }
 .media-edge svg { width: 100%; height: 100%; filter: blur(9px); transform: scale(1.12); }
+.media-edge-left, .media-edge-right { top: 0; bottom: 0; width: calc(var(--image-gap-x, 0px) + 5px); }
 .media-edge-left { left: 0; mask-image: linear-gradient(90deg, transparent, #000 95%); }
 .media-edge-right { right: 0; mask-image: linear-gradient(90deg, #000 5%, transparent); }
+.media-edge-top, .media-edge-bottom { left: 0; right: 0; height: calc(var(--image-gap-y, 0px) + 5px); }
+.media-edge-top { top: 0; mask-image: linear-gradient(180deg, transparent, #000 95%); }
+.media-edge-bottom { bottom: 0; mask-image: linear-gradient(180deg, #000 5%, transparent); }
+.card-media[data-fill="horizontal"] > :is(.media-edge-left, .media-edge-right),
+.card-media[data-fill="vertical"] > :is(.media-edge-top, .media-edge-bottom) { display: block; }
 @media (hover: none) { .project-card:hover { transform: none; } }
 
 .card-media > .card-crop{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}

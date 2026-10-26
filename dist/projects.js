@@ -33,7 +33,7 @@ window.portfolioProjects = Object.freeze([
     title: 'OutRun',
     type: 'PUZZLE GAME',
     href: 'outrun.html',
-    image: { src: 'assets/outrun-monitor.webp', width: 1237, height: 674, alt: 'Surveillance monitor with multiple camera views in OutRun' },
+    image: { src: 'assets/outrun-monitor.webp', width: 1237, height: 674, crop: { x: 205, y: 128, width: 630, height: 354 }, alt: 'Surveillance monitor with multiple camera views in OutRun' },
     description: {
       en: 'A surveillance-based puzzle prototype. Observe multiple camera feeds and use what you see to navigate a third-person character.',
       zh: '以监控视角为核心的解谜原型。观察多个摄像头画面，利用不同视角的信息操控第三人称角色。'

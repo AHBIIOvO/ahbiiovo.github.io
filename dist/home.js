@@ -49,14 +49,19 @@
     } else {
       Object.assign(image, { src: project.image.src, alt: project.image.alt, width: project.image.width, height: project.image.height, loading: 'lazy', decoding: 'async' });
     }
-    const edgeLeft = document.createElement('span');
-    const edgeRight = document.createElement('span');
-    [edgeLeft, edgeRight].forEach((edge, side) => {
-      edge.className = `media-edge media-edge-${side ? 'right' : 'left'}`;
+    const region = crop || { x: 0, y: 0, width: project.image.width, height: project.image.height };
+    const edgeSlices = {
+      left: [region.x, region.y, 1, region.height],
+      right: [region.x + region.width - 1, region.y, 1, region.height],
+      top: [region.x, region.y, region.width, 1],
+      bottom: [region.x, region.y + region.height - 1, region.width, 1]
+    };
+    Object.entries(edgeSlices).forEach(([side, rectangle]) => {
+      const edge = document.createElement('span');
+      edge.className = `media-edge media-edge-${side}`;
       edge.setAttribute('aria-hidden', 'true');
-      const ns = 'http://www.w3.org/2000/svg';
       const slice = document.createElementNS(ns, 'svg');
-      slice.setAttribute('viewBox', crop ? `${side ? crop.x + crop.width - 1 : crop.x} ${crop.y} 1 ${crop.height}` : `${side ? project.image.width - 1 : 0} 0 1 ${project.image.height}`);
+      slice.setAttribute('viewBox', rectangle.join(' '));
       slice.setAttribute('preserveAspectRatio', 'none');
       const pixels = document.createElementNS(ns, 'image');
       pixels.setAttribute('href', project.image.src);
@@ -64,8 +69,8 @@
       pixels.setAttribute('height', project.image.height);
       slice.append(pixels);
       edge.append(slice);
+      media.append(edge);
     });
-    media.append(edgeLeft, edgeRight);
     media.append(image);
 
     const content = document.createElement('div');
@@ -103,10 +108,12 @@
     content.append(kicker, title, description, tools, bottom);
     card.append(media, content, next);
     function measureImage() {
-      const aspect = crop ? crop.width / crop.height : project.image.width / project.image.height;
-      const renderedWidth = Math.min(media.clientWidth, media.clientHeight * aspect);
-      media.style.setProperty('--image-gap', `${Math.max(0, (media.clientWidth - renderedWidth) / 2)}px`);
-      media.style.setProperty('--image-width', `${renderedWidth}px`);
+      const scale = Math.min(media.clientWidth / region.width, media.clientHeight / region.height);
+      const gapX = Math.max(0, (media.clientWidth - region.width * scale) / 2);
+      const gapY = Math.max(0, (media.clientHeight - region.height * scale) / 2);
+      media.style.setProperty('--image-gap-x', `${gapX}px`);
+      media.style.setProperty('--image-gap-y', `${gapY}px`);
+      media.dataset.fill = gapX > .5 ? 'horizontal' : gapY > .5 ? 'vertical' : 'none';
     }
     new ResizeObserver(measureImage).observe(media);
     fragment.append(card);
