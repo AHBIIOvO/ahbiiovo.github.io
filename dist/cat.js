@@ -232,7 +232,7 @@
     if (usePointer && pointerFollowing() && pointer.inside) {
       const rect = world.getBoundingClientRect();
       const x = followAnchor.x - rect.left;
-      const y = followAnchor.y - rect.top;
+      const y = pointer.y - rect.top;
       const distanceTo = p => {
         const vertical = p.card ? Math.abs(y - clamp(y, p.y, p.bottom)) : Math.abs(y - p.y);
         return vertical + Math.abs(x - clamp(x, p.left, p.right)) * .7;
@@ -249,6 +249,16 @@
         && y >= current.y - upperBuffer && y <= (current.card ? current.bottom : current.y) + 24;
       destination = hoveringCat || nearCurrent || distanceTo(current) <= closest.distance + 24
         ? current : closest.p;
+      const cards = platforms.filter(p => p.card).sort((a, b) => a.y - b.y);
+      if (!hoveringCat && cards.length && y >= cards[0].y - (current.card ? height + 36 : 0)) {
+        // Each card midpoint divides its upper plank from the next lower one.
+        // The same boundary applies when approaching from either direction.
+        destination = cards[0];
+        for (let i = 0; i < cards.length - 1; i++) {
+          if (y <= (cards[i].y + cards[i].bottom) / 2) break;
+          destination = cards[i + 1];
+        }
+      }
       target = clamp(x, destination.left + 14, destination.right - 14);
     } else {
       const choices = platforms.filter(p => ['games', 'experiences'].includes(p.id) && (titleOnly() || p.id !== body.ground.id));
@@ -407,7 +417,10 @@
     if (!resourcesReady || !pointerFollowing() || event.pointerType !== 'mouse') return;
     if (age < petUntil) return;
     if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + wakeDelay;
-    const movedBeyondRadius = !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
+    const rect = world.getBoundingClientRect();
+    const crossedMidpoint = body.ground?.card && pointer.known && platforms.some(p => p.card
+      && (pointer.y - rect.top > (p.y + p.bottom) / 2) !== (event.clientY - rect.top > (p.y + p.bottom) / 2));
+    const movedBeyondRadius = crossedMidpoint || !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
     if (movedBeyondRadius) {
       pointerRevision++;
       reachingFor = 0;
@@ -419,7 +432,6 @@
     pointer.x = event.clientX;
     pointer.y = event.clientY;
     pointer.known = true;
-    const rect = world.getBoundingClientRect();
     pointer.inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     if (movedBeyondRadius && awake && age > nextPointerDecision && pointer.inside && body.ground) {
       chooseTarget(true);
