@@ -31,6 +31,7 @@
   let pointerRevision = 0, reachedRevision = -1;
   let pendingPointerTarget = false;
   let petUntil = 0, petPending = false, lastPetClick = -Infinity, stillPetTimer;
+  let hoveringCat = false;
   const petParticles = new Set();
   const titleOnly = () => !mouse.matches || compact.matches;
   const pointerFollowing = () => !titleOnly() && !reduced.matches;
@@ -232,11 +233,22 @@
       const rect = world.getBoundingClientRect();
       const x = followAnchor.x - rect.left;
       const y = followAnchor.y - rect.top;
-      destination = platforms.reduce((best, p) => {
+      const distanceTo = p => {
         const vertical = p.card ? Math.abs(y - clamp(y, p.y, p.bottom)) : Math.abs(y - p.y);
-        const distance = vertical + Math.abs(x - clamp(x, p.left, p.right)) * .7;
+        return vertical + Math.abs(x - clamp(x, p.left, p.right)) * .7;
+      };
+      const closest = platforms.reduce((best, p) => {
+        const distance = distanceTo(p);
         return !best || distance < best.distance ? { p, distance } : best;
-      }, null).p;
+      }, null);
+      const current = body.ground;
+      // Include the cat's body above a card in that card's pointer region.
+      // A different surface must be clearly closer before switching platforms.
+      const upperBuffer = current.card ? height + 36 : height * .35 + 24;
+      const nearCurrent = x >= current.left - 36 && x <= current.right + 36
+        && y >= current.y - upperBuffer && y <= (current.card ? current.bottom : current.y) + 24;
+      destination = hoveringCat || nearCurrent || distanceTo(current) <= closest.distance + 24
+        ? current : closest.p;
       target = clamp(x, destination.left + 14, destination.right - 14);
     } else {
       const choices = platforms.filter(p => ['games', 'experiences'].includes(p.id) && (titleOnly() || p.id !== body.ground.id));
@@ -269,6 +281,12 @@
     if (petPending && body.ground) beginPet();
     if (awake && age < petUntil) {
       pose('belly');
+    } else if (awake && hoveringCat && body.ground && pointerFollowing()) {
+      // Hold still under the mouse so the click target cannot run away.
+      body.vx = 0;
+      destination = null;
+      nextDecision = age + 1;
+      pose('idle');
     } else if (awake && roaming()) {
       if (pointerFollowing() && pendingPointerTarget && pointer.inside && body.ground && age >= nextPointerDecision) {
         chooseTarget(true);
@@ -376,6 +394,14 @@
   function requestTick() {
     if (resourcesReady && !frame && visible && !document.hidden && !reduced.matches) frame = requestAnimationFrame(tick);
   }
+
+  cat.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'mouse' && pointerFollowing()) hoveringCat = true;
+  });
+  cat.addEventListener('pointerleave', () => {
+    hoveringCat = false;
+    if (pointerFollowing() && pointer.known) pendingPointerTarget = true;
+  });
 
   document.addEventListener('pointermove', event => {
     if (!resourcesReady || !pointerFollowing() || event.pointerType !== 'mouse') return;
