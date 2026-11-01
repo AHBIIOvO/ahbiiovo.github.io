@@ -10,33 +10,97 @@
   const mouse = matchMedia('(hover: hover) and (pointer: fine)');
   const compact = matchMedia('(max-width: 600px)');
   const wakeDelay = .4;
+  const wakeTransitionDuration = .28;
   const gravity = 1500;
   const maxRise = 420;
   const maxSpeed = 1040;
   const clamp = (n, a, b) => Math.max(a, Math.min(n, Math.max(a, b)));
   const body = { x: 0, feet: 0, vx: 0, vy: 0, ground: null, stride: 0 };
   const gaze = { x: 0, y: 0 };
-  const pointer = { x: 0, y: 0, known: false, inside: false };
+  const pointer = { x: 0, y: 0, known: false, inside: false, present: false };
   const followAnchor = { x: 0, y: 0, valid: false };
   const followRadius = 24;
+  const followStartRadius = 36;
+  const followStopRadius = 18;
   let platforms = [];
   let bounds, width, height;
   let frame = 0, measureFrame = 0, last = 0, visible = true;
   let resourcesReady = false;
-  let awake = false, age = 0, nextDecision = 2.6, nextGroom = 9, groomUntil = 0, landUntil = 0;
-  let wakeAge = mouse.matches && !compact.matches ? Infinity : document.readyState === 'complete' ? wakeDelay : Infinity;
-  let waking = false, stretchUntil = 0;
+  let awake = false, age = 0, nextDecision = 2.6, nextSway = 9, swayUntil = 0, landUntil = 0;
+  let wakeAge = Infinity;
+  let waking = false, wakeStarted = 0, stretchUntil = 0;
   let target = null, jump = null, destination = null, nextPointerDecision = 0;
   let reachingFor = 0;
   let pointerRevision = 0, reachedRevision = -1;
   let pendingPointerTarget = false;
   let petUntil = 0, petPending = false, lastPetClick = -Infinity, stillPetTimer;
   let hoveringCat = false;
+  let lastPointerAge=-Infinity,idleActive=false,idleSitUntil=0,idleBeat=0,idleWaitingForLanding=false;
+  let idlePaceReadyAt=0,idlePaceLeg=0,idleAction='idle',idleActionUntil=0;
   const petParticles = new Set();
   const titleOnly = () => !mouse.matches || compact.matches;
   const pointerFollowing = () => !titleOnly() && !reduced.matches;
   const roaming = () => !reduced.matches;
   const worldInset = () => width / 2;
+
+  const onTitle=platform=>platform&&['games','experiences'].includes(platform.id);
+  const needsIdle=()=>titleOnly()||!pointer.present||!pointer.inside||age-lastPointerAge>3;
+  function leavePointer(){
+    pointer.present=pointer.inside=false;hoveringCat=false;followAnchor.valid=false;
+    pendingPointerTarget=false;destination=target=null;reachingFor=0;
+    idleSitUntil=age+1.1;nextDecision=idleSitUntil;swayUntil=0;idleWaitingForLanding=!body.ground;
+    idlePaceReadyAt=idlePaceLeg=idleActionUntil=0;idleAction='idle';
+    requestTick();
+  }
+  function idleRest(){
+    // One brief stationary activity, then a quiet seat, within a 4–5s rest.
+    idlePaceReadyAt=age+4+Math.random();nextDecision=idlePaceReadyAt;
+    idleAction='sway';idleBeat++;
+    idleActionUntil=age+2.4;
+    swayUntil=idleAction==='sway'?idleActionUntil:0;
+  }
+  function planIdle(){
+    if(!body.ground||age<idleSitUntil)return;
+    const titles=platforms.filter(onTitle);
+    if(!onTitle(body.ground)){
+      destination=titles.reduce((best,p)=>!best||Math.abs(p.y-body.feet)<Math.abs(best.y-body.feet)?p:best,null);
+      if(destination)target=clamp(body.x,destination.left+14,destination.right-14);
+      return;
+    }
+    if(destination){
+      if(Math.abs(body.x-target)>3||Math.abs(body.vx)>8)return;
+      destination=target=null;
+      idlePaceLeg=0;idleRest();return;
+    }
+    if(!idlePaceReadyAt){idleRest();return;}
+    if(age<idlePaceReadyAt)return;
+    idleAction='idle';idleActionUntil=swayUntil=0;
+    idlePaceLeg=1;
+    const other=titles.find(p=>p.id!==body.ground.id);
+    destination=other&&Math.random()<.35?other:body.ground;
+    const inset=Math.max(14,Math.min(24,width*.2));
+    const left=clamp(destination.left+inset,worldInset(),bounds.width-worldInset());
+    const right=clamp(destination.right-inset,worldInset(),bounds.width-worldInset());
+    const minTravel=Math.min(70,Math.max(0,right-left)*.22);
+    for(let attempt=0;attempt<6;attempt++){
+      target=left+Math.random()*Math.max(0,right-left);
+      if(destination.id!==body.ground.id||Math.abs(target-body.x)>=minTravel)break;
+    }
+
+  }
+
+  // Constant acceleration with v²=2ad braking distance, independent of gait.
+  function groundMotion(distance,velocity,dt,cruiseSpeed,hold=false,gentle=false){
+    const acceleration=gentle?260:1800,braking=gentle?550:4200;
+    const desired=hold?0:Math.sign(distance)*Math.min(cruiseSpeed,Math.sqrt(2*braking*Math.max(0,Math.abs(distance)-.75)));
+    const slowing=velocity*desired<0||Math.abs(desired)<Math.abs(velocity);
+    const limit=(slowing?braking:acceleration)*dt;
+    const next=velocity+clamp(desired-velocity,-limit,limit);
+    let advance=(velocity+next)*.5*dt;
+    if(!hold&&Math.sign(advance)===Math.sign(distance)&&Math.abs(advance)>=Math.abs(distance))return{velocity:0,advance:distance};
+    if(!hold&&Math.abs(distance)<.8&&Math.abs(next)<braking*dt)return{velocity:0,advance:distance};
+    return{velocity:next,advance};
+  }
 
   function pose(name) {
     if (cat.dataset.state !== name) cat.dataset.state = name;
@@ -49,11 +113,12 @@
     petPending = false;
     body.vx = body.vy = 0;
     destination = target = null;
-    groomUntil = reachingFor = 0;
+    swayUntil = reachingFor = 0;
+    reachedRevision = pointerRevision;
     pendingPointerTarget = false;
     petUntil = age + 2.2;
     nextDecision = petUntil + 1.3;
-    nextGroom = petUntil + 6;
+    nextSway = petUntil + 6;
     pose('belly');
     draw();
     requestTick();
@@ -107,14 +172,23 @@
   document.addEventListener('portfolio:language-change', updatePetLabel);
   updatePetLabel();
 
-  function draw(dt = 1 / 60) {
+  function draw(dt = 0) {
     cat.style.transform = `translate3d(${(body.x - width / 2).toFixed(2)}px, ${(body.feet - height * .94).toFixed(2)}px, 0)`;
     const box = world.getBoundingClientRect();
-    const dx = pointer.known ? pointer.x - box.left - body.x : 0;
-    const dy = pointer.known ? pointer.y - box.top - (body.feet - height * .5) : 0;
+    const dx = pointer.known && !idleActive ? pointer.x - box.left - body.x : 0;
+    const dy = pointer.known && !idleActive ? pointer.y - box.top - (body.feet - height * .5) : 0;
     const jumpHeight = jump ? Math.max(jump.vy ** 2 / (2 * gravity), Math.abs(jump.platform.y - jump.source.y)) : 0;
     const jumpLift = jump ? Math.max(0, jump.source.y - body.feet) : 0;
-    window.renderPortfolioCat?.({ state: cat.dataset.state, time: age, dt, dx, dy, vx: body.vx, vy: body.vy, jumpHeight, jumpLift, jumpDrop: !!jump?.drop, stride: body.stride, petRemaining: Math.max(0, petUntil - age), still: reduced.matches });
+    window.renderPortfolioCat?.({ state: cat.dataset.state, time: age, dt, dx, dy, vx: body.vx, vy: body.vy, jumpHeight, jumpLift, jumpDrop: !!jump?.drop, stride: body.stride, petRemaining: Math.max(0, petUntil - age), wakeProgress: clamp((age - wakeStarted) / wakeTransitionDuration, 0, 1), still: reduced.matches });
+    if(awake&&idleActive){
+      const observing=cat.dataset.state==='observe';
+      const blend=1-Math.exp(-8*dt);
+      gaze.x+=((observing?Math.sin(age*1.3)*3:0)-gaze.x)*blend;
+      gaze.y+=((observing?Math.sin(age*.8)*.7:0)-gaze.y)*blend;
+      cat.style.setProperty('--eye-x',gaze.x.toFixed(2)+'px');
+      cat.style.setProperty('--eye-y',gaze.y.toFixed(2)+'px');
+      cat.style.setProperty('--head-angle','0deg');return;
+    }
     if (!awake || !pointer.known || !pointerFollowing()) return;
     const length = Math.max(65, Math.hypot(dx, dy));
     const blend = 1 - Math.exp(-20 * dt);
@@ -259,13 +333,20 @@
           destination = cards[i + 1];
         }
       }
-      target = clamp(x, destination.left + 14, destination.right - 14);
+      // A small zone around the cat holds its feet still. Once pursuit starts,
+      // stop short of the pointer so tiny hand movements do not restart it.
+      const samePlatform=destination.id===body.ground.id;
+      const distance=x-body.x;
+      const aim=samePlatform
+        ? Math.abs(distance)<=followStartRadius?body.x:x-Math.sign(distance)*followStopRadius
+        : x;
+      target = clamp(aim, destination.left + 14, destination.right - 14);
     } else {
       const choices = platforms.filter(p => ['games', 'experiences'].includes(p.id) && (titleOnly() || p.id !== body.ground.id));
       destination = choices[Math.floor(Math.random() * choices.length)];
       target = destination.left + (destination.right - destination.left) * (.25 + Math.random() * .5);
     }
-    groomUntil = 0;
+    swayUntil = 0;
     nextDecision = age + 6 + Math.random() * 3;
   }
 
@@ -278,9 +359,10 @@
     refreshCards();
     if (!awake && age >= wakeAge && !waking) {
       waking = true;
-      stretchUntil = age + 1.2;
-      pose('stretch');
+      wakeStarted = age;
+      stretchUntil = age + wakeTransitionDuration + 1.2;
     }
+    if (waking) pose(age < wakeStarted + wakeTransitionDuration ? 'wake' : 'stretch');
     if (waking && age >= stretchUntil) {
       awake = true;
       waking = false;
@@ -288,27 +370,41 @@
       nextDecision = age + .3;
       pose('idle');
     }
+    const idleNow=needsIdle();
+    if(awake&&idleNow!==idleActive){
+      idleActive=idleNow;destination=target=null;reachingFor=swayUntil=0;
+      idlePaceReadyAt=idlePaceLeg=idleActionUntil=0;idleAction='idle';
+      if(idleActive){idleSitUntil=age+1.1;nextDecision=idleSitUntil;idleWaitingForLanding=!body.ground;}
+      else{pendingPointerTarget=true;nextPointerDecision=age;idleWaitingForLanding=false;}
+    }
+    cat.dataset.activity=idleNow?'idle':'follow';
     if (petPending && body.ground) beginPet();
     if (awake && age < petUntil) {
       pose('belly');
-    } else if (awake && hoveringCat && body.ground && pointerFollowing()) {
-      // Hold still under the mouse so the click target cannot run away.
-      body.vx = 0;
+    } else if (awake && !idleActive && hoveringCat && body.ground && pointerFollowing()) {
+      // Brake under the pointer instead of snapping velocity to zero.
+      // Once stopped, hold the click target still for petting.
+      const braking=groundMotion(0,body.vx,dt,560,true);
+      body.vx=Math.abs(braking.velocity)<6?0:braking.velocity;
+      body.x=clamp(body.x+braking.advance,body.ground.left+8,body.ground.right-8);
+      body.x=clamp(body.x,width/2,bounds.width-width/2);
+      body.stride+=Math.abs(braking.advance);
       destination = null;
       nextDecision = age + 1;
-      pose('idle');
+      pose(body.vx===0?'idle':'run');
     } else if (awake && roaming()) {
-      if (pointerFollowing() && pendingPointerTarget && pointer.inside && body.ground && age >= nextPointerDecision) {
+      if(idleActive)planIdle();
+      if (!idleActive && pointerFollowing() && pendingPointerTarget && pointer.inside && body.ground && age >= nextPointerDecision) {
         chooseTarget(true);
         pendingPointerTarget = false;
         nextPointerDecision = age + .16;
       }
-      if (age > nextDecision && body.ground && cat.dataset.state !== 'reach') {
-        // A quiet paw wash between trips; pointer movement can interrupt it.
-        if (age > nextGroom) {
-          groomUntil = age + 2.1;
+      if (!idleActive && age > nextDecision && body.ground && cat.dataset.state !== 'reach') {
+        // A brief sway between trips; pointer movement can interrupt it.
+        if (age > nextSway) {
+          swayUntil = age + 2.1;
           nextDecision = age + 2.3;
-          nextGroom = age + 15;
+          nextSway = age + 15;
           destination = null;
         } else chooseTarget(pointerFollowing() && pointer.inside);
       }
@@ -322,11 +418,11 @@
         } else if (destination) runTo = target;
         const dx = runTo - body.x;
         if (step?.down) body.vx = 0;
-        const desired = age < landUntil || Math.abs(dx) < 2 ? 0 : Math.sign(dx) * Math.min(titleOnly() ? 110 : 480, Math.abs(dx) * 16);
-        body.vx += clamp(desired - body.vx, -3000 * dt, 3000 * dt);
-        if (Math.abs(dx) < 2 && Math.abs(body.vx) < 18) body.vx = 0;
-        const advance = body.vx * dt;
-        body.x += Math.abs(advance) > Math.abs(dx) && Math.sign(advance) === Math.sign(dx) ? dx : advance;
+        const cruiseSpeed=idleActive?(onTitle(body.ground)?65:280):Math.min(560,bounds.width*.75);
+        const motion=groundMotion(dx,body.vx,dt,cruiseSpeed,age<landUntil||!!step?.down||(idleActive&&age<idleSitUntil),idleActive&&onTitle(body.ground)&&idlePaceLeg===1&&age>=idleSitUntil);
+        body.vx=motion.velocity;
+        const advance=motion.advance;
+        body.x+=advance;
         body.stride += Math.abs(advance);
         body.x = clamp(body.x, body.ground.left + (step?.down ? -16 : 8), body.ground.right + (step?.down ? 16 : -8));
         body.x = clamp(body.x, width / 2, bounds.width - width / 2);
@@ -342,10 +438,10 @@
           }
         } else {
           const rect = world.getBoundingClientRect();
-          const pointerX = followAnchor.x - rect.left;
-          const pointerY = followAnchor.y - rect.top;
+          const pointerX = pointer.x - rect.left;
+          const pointerY = pointer.y - rect.top;
           const closest = !step && Math.abs(dx) < 4 && Math.abs(body.vx) < 18;
-          const wantsToReach = pointerFollowing() && pointer.known && pointer.inside && closest
+          const wantsToReach = !idleActive && pointerFollowing() && pointer.known && pointer.inside && closest
             && pointerY < body.feet - height * .58
             && Math.abs(pointerX - body.x) < width * .9;
           reachingFor = wantsToReach && reachedRevision !== pointerRevision ? reachingFor + dt : 0;
@@ -356,7 +452,8 @@
           if (age < landUntil) pose('land');
           else if (Math.abs(body.vx) > 8) pose('run');
           else if (reachingFor > .18) pose('reach');
-          else if (age < groomUntil) pose('groom');
+          else if (age < swayUntil) pose('sway');
+          else if(idleActive&&age<idleActionUntil)pose(idleAction);
           else pose('idle');
         }
       }
@@ -377,6 +474,7 @@
             jump = null;
             landUntil = age + .14;
             pose('land');
+            if(idleActive&&idleWaitingForLanding){idleWaitingForLanding=false;idleSitUntil=age+1.1;nextDecision=idleSitUntil;}
           }
         }
         // Keep a missed jump on the final plank.
@@ -387,15 +485,16 @@
           body.vx = body.vy = 0;
           body.ground = floor;
           jump = null;
+          if(idleActive&&idleWaitingForLanding){idleWaitingForLanding=false;idleSitUntil=age+1.1;nextDecision=idleSitUntil;}
         }
       }
     } else if (awake) {
       // Reduced-motion preference retains a quiet, stationary pose.
-      if (age >= nextGroom) {
-        groomUntil = age + 2.1;
-        nextGroom = age + 10 + Math.random() * 4;
+      if (age >= nextSway) {
+        swayUntil = age + 2.1;
+        nextSway = age + 10 + Math.random() * 4;
       }
-      pose(age < groomUntil ? 'groom' : 'idle');
+      pose(age < swayUntil ? 'sway' : 'idle');
     }
     draw(dt);
     requestTick();
@@ -414,13 +513,16 @@
   });
 
   document.addEventListener('pointermove', event => {
-    if (!resourcesReady || !pointerFollowing() || event.pointerType !== 'mouse') return;
-    if (age < petUntil) return;
+    if (!resourcesReady || event.pointerType !== 'mouse') return;
+    // Mouse activity wakes the cat even on layouts where following is disabled.
     if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + wakeDelay;
+    if (reduced.matches && !awake) { awake = true; pose('idle'); draw(); }
+    requestTick();
+    if (!pointerFollowing()) return;
+    pointer.present=true;lastPointerAge=age;
+    // Petting holds the pose in tick(), but pointer intent must stay current.
     const rect = world.getBoundingClientRect();
-    const crossedMidpoint = body.ground?.card && pointer.known && platforms.some(p => p.card
-      && (pointer.y - rect.top > (p.y + p.bottom) / 2) !== (event.clientY - rect.top > (p.y + p.bottom) / 2));
-    const movedBeyondRadius = crossedMidpoint || !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
+    const movedBeyondRadius = !followAnchor.valid || Math.hypot(event.clientX - followAnchor.x, event.clientY - followAnchor.y) > followRadius;
     if (movedBeyondRadius) {
       pointerRevision++;
       reachingFor = 0;
@@ -433,15 +535,15 @@
     pointer.y = event.clientY;
     pointer.known = true;
     pointer.inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    if (movedBeyondRadius && awake && age > nextPointerDecision && pointer.inside && body.ground) {
-      chooseTarget(true);
-      pendingPointerTarget = false;
-      nextPointerDecision = age + .16;
-    }
-    draw();
+    // Pointer events update intent only. The next simulation tick consumes it
+    // using the existing .16s retarget gate and advances the visual clock once.
+    requestTick();
   }, { passive: true });
+  document.addEventListener('pointerout',event=>{if(event.pointerType==='mouse'&&!event.relatedTarget)leavePointer();});
+  document.documentElement.addEventListener('pointerleave',event=>{if(event.pointerType==='mouse')leavePointer();});
+  window.addEventListener('blur',leavePointer);
   window.addEventListener('scroll', () => {
-    if (!pointer.known || !pointerFollowing()) return;
+    if (!pointer.present || !pointer.known || !pointerFollowing()) return;
     const rect = world.getBoundingClientRect();
     pointer.inside = pointer.x >= rect.left && pointer.x <= rect.right
       && pointer.y >= rect.top && pointer.y <= rect.bottom;
@@ -453,10 +555,6 @@
       requestTick();
     }
   }, { passive: true });
-  window.addEventListener('load', () => {
-    if (!mouse.matches || compact.matches) wakeAge = age + wakeDelay;
-    requestTick();
-  }, { once: true });
   new ResizeObserver(requestMeasure).observe(world);
   window.addEventListener('resize', requestMeasure, { passive: true });
   document.addEventListener('portfolio:language-change', requestMeasure);
@@ -477,14 +575,13 @@
     cancelAnimationFrame(frame);
     frame = 0;
     last = 0;
-    if (reduced.matches) { awake = true; pose('idle'); }
+    if (reduced.matches && (awake || waking)) { awake = true; waking = false; pose('idle'); }
     requestMeasure();
   }));
-  if (reduced.matches) { awake = true; pose('idle'); }
+  pose('sleep');
   measure();
   window.portfolioCatReady?.then(() => {
     resourcesReady = true;
-    if (!mouse.matches || compact.matches) wakeAge = age + wakeDelay;
     measure();
     // Let SVG masks and the first positioned pose paint before revealing all
     // parts together. Keep the complete cat hidden if an asset fails to load.

@@ -18,6 +18,12 @@
     const card = document.createElement('a');
     card.className = 'project-card';
     card.href = project.href;
+    card.draggable = false;
+    card.addEventListener('click', event => {
+      const selection = window.getSelection();
+      if (event.detail > 0 && event.target.closest('.card-content') && selection && !selection.isCollapsed
+        && (card.contains(selection.anchorNode) || card.contains(selection.focusNode))) event.preventDefault();
+    });
     card.dataset.project = project.id;
     card.dataset.enLabel = `${project.title} — view project`;
     card.dataset.zhLabel = `${project.title} — 查看项目`;
