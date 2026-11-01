@@ -942,9 +942,13 @@
     else if (state === 'reach') name = 'reach';
     else if (state === 'belly') name = 'belly';
     const moving = state === 'run' || state === 'jump';
-    if (moving && Math.abs(vx) > 22 && Math.sign(vx) !== direction) {
+    const wasMoving = previousState === 'run' || previousState === 'jump';
+    // Starting from a seated pose must face the first step immediately, even
+    // before acceleration reaches the threshold used for an ongoing turn.
+    if (moving && !wasMoving) turnUntil = 0;
+    if (moving && Math.abs(vx) > (wasMoving ? 22 : .01) && Math.sign(vx) !== direction) {
       direction = Math.sign(vx);
-      turnUntil = time + .065;
+      turnUntil = wasMoving ? time + .065 : 0;
     }
     const turning = state==='run' && time < turnUntil;
     if (turning && name!=='gallop') name = 'front';
