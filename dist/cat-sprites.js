@@ -972,12 +972,16 @@
   // Procedural parts (especially the tail) must not appear before the raster
   // body and every SVG image instance have loaded. Register in this same task,
   // before image events can fire, and also wait for bitmap decoding.
+  const imageNodes = [...art.querySelectorAll('image, feImage')];
+  // feImage does not consistently dispatch load in browsers; decode its source
+  // below instead. Ordinary SVG images also wait for their own load event.
   const svgImagesReady = Promise.all([...art.querySelectorAll('image')].map(node =>
     new Promise((resolve, reject) => {
       node.addEventListener('load', resolve, { once: true });
       node.addEventListener('error', () => reject(new Error('Cat SVG image failed to load')), { once: true });
     })));
-  const bitmapReady = Promise.all([source,runSheet,walkSheet].map(url => new Promise((resolve,reject) => {
+  const imageSources = [...new Set(imageNodes.map(node => node.getAttribute('href')))];
+  const bitmapReady = Promise.all(imageSources.map(url => new Promise((resolve,reject) => {
     const bitmap=new Image();
     bitmap.onload=()=>bitmap.decode?bitmap.decode().then(resolve,reject):resolve();
     bitmap.onerror=()=>reject(new Error('Cat artwork failed to load'));

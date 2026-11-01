@@ -68,6 +68,7 @@ h1, h2, h3, p { margin: 0; }
 .cat-stage { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
 .hero-cat { position: absolute; width: 102px; height: 86.31px; left: 0; top: 0; border: 0; padding: 0; background: transparent; pointer-events: auto; cursor: pointer; touch-action: manipulation; user-select: none; will-change: transform; }
 .hero-cat:focus-visible { outline-offset: 3px; border-radius: 40%; }
+.hero-cat:not([data-ready="true"]) { opacity: 0; pointer-events: none; }
 .cat-affection { position: absolute; z-index: 4; pointer-events: none; user-select: none; font-family: Arial, sans-serif; line-height: 1.2; font-weight: 600; white-space: nowrap; text-shadow: 0 1px 4px #10171d; animation: cat-affection-float var(--float-time) ease-out both; }
 .cat-affection-meow { color: #b3d7f4; }
 .cat-affection-heart { color: #d9a6b6; }

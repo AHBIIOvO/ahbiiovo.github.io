@@ -11,6 +11,7 @@
   const compact = matchMedia('(max-width: 600px)');
   const wakeDelay = .4;
   const wakeTransitionDuration = .28;
+  const standingRestDuration = 2.5;
   const gravity = 1500;
   const maxRise = 420;
   const maxSpeed = 1040;
@@ -29,6 +30,7 @@
   let awake = false, age = 0, nextDecision = 2.6, nextSway = 9, swayUntil = 0, landUntil = 0;
   let wakeAge = Infinity;
   let waking = false, wakeStarted = 0, stretchUntil = 0;
+  let standingRestUntil = 0;
   let target = null, jump = null, destination = null, nextPointerDecision = 0;
   let reachingFor = 0;
   let pointerRevision = 0, reachedRevision = -1;
@@ -117,6 +119,7 @@
     reachedRevision = pointerRevision;
     pendingPointerTarget = false;
     petUntil = age + 2.2;
+    standingRestUntil = petUntil + standingRestDuration;
     nextDecision = petUntil + 1.3;
     nextSway = petUntil + 6;
     pose('belly');
@@ -366,6 +369,7 @@
     if (waking && age >= stretchUntil) {
       awake = true;
       waking = false;
+      standingRestUntil = age + standingRestDuration;
       landUntil = age + .18;
       nextDecision = age + .3;
       pose('idle');
@@ -381,6 +385,11 @@
     if (petPending && body.ground) beginPet();
     if (awake && age < petUntil) {
       pose('belly');
+    } else if (awake && body.ground && age < standingRestUntil) {
+      body.vx = body.vy = 0;
+      destination = target = null;
+      reachingFor = swayUntil = 0;
+      pose('idle');
     } else if (awake && !idleActive && hoveringCat && body.ground && pointerFollowing()) {
       // Brake under the pointer instead of snapping velocity to zero.
       // Once stopped, hold the click target still for petting.
@@ -512,12 +521,21 @@
     if (pointerFollowing() && pointer.known) pendingPointerTarget = true;
   });
 
-  document.addEventListener('pointermove', event => {
-    if (!resourcesReady || event.pointerType !== 'mouse') return;
-    // Mouse activity wakes the cat even on layouts where following is disabled.
+  let wakeRequested = false;
+  function wakeFromActivity() {
+    // Remember gestures made while the artwork is still loading.
+    wakeRequested = true;
+    if (!resourcesReady) return;
     if (!awake && !waking && !Number.isFinite(wakeAge)) wakeAge = age + wakeDelay;
     if (reduced.matches && !awake) { awake = true; pose('idle'); draw(); }
     requestTick();
+  }
+  // A swipe wakes the mobile cat without blocking native page scrolling.
+  document.addEventListener('touchmove', wakeFromActivity, { passive: true });
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse') return;
+    wakeFromActivity();
+    if (!resourcesReady) return;
     if (!pointerFollowing()) return;
     pointer.present=true;lastPointerAge=age;
     // Petting holds the pose in tick(), but pointer intent must stay current.
@@ -583,11 +601,12 @@
   window.portfolioCatReady?.then(() => {
     resourcesReady = true;
     measure();
+    if (wakeRequested) wakeFromActivity();
     // Let SVG masks and the first positioned pose paint before revealing all
     // parts together. Keep the complete cat hidden if an asset fails to load.
     requestAnimationFrame(() => requestAnimationFrame(() => {
       cat.dataset.ready = 'true';
-      cat.style.visibility = 'visible';
+      cat.style.opacity = '1';
     }));
   }).catch(() => { cat.dataset.ready = 'failed'; });
 })();
