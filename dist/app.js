@@ -42,30 +42,19 @@ setLanguage(language);
 languageButton.addEventListener('click', () => setLanguage(language === 'en' ? 'zh' : 'en'));
 
 // Only an explicit visitor action creates the third-party player.
-const player = document.querySelector('#demo-player');
-const videoButtons = [...document.querySelectorAll('[data-video]')];
-const allowedVideos = new Set(videoButtons.map(button => button.dataset.video));
-let selectedVideo = 'BV1oBssenEVH';
-function loadVideo(id) {
-  if (!allowedVideos.has(id)) return;
-  selectedVideo = id;
-  const frame = document.createElement('iframe');
-  // Official external player endpoint; HTTPS also works in local file previews.
-  frame.src = `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(id)}&autoplay=0`;
-  frame.title = id === 'BV1oBssenEVH' ? 'FPS prototype — full demo (Bilibili)' : 'Magazine inspection and emergency reload animations (Bilibili)';
-  frame.scrolling = 'no';
-  frame.allow = 'fullscreen; picture-in-picture';
-  frame.allowFullscreen = true;
-  player.replaceChildren(frame);
-  document.querySelector('#bilibili-link').href = `https://www.bilibili.com/video/${id}/`;
-  videoButtons.forEach(button => {
-    const active = button.dataset.video === id;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-}
-document.querySelector('#load-video')?.addEventListener('click', () => loadVideo(selectedVideo));
-videoButtons.forEach(button => button.addEventListener('click', () => loadVideo(button.dataset.video)));
+document.querySelectorAll('.video-player[data-youtube]').forEach(player => {
+  const id = player.dataset.youtube;
+  if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
+  player.querySelector('.video-cover')?.addEventListener('click', () => {
+    const frame = document.createElement('iframe');
+    frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0`;
+    frame.title = player.dataset.videoTitle || 'Project demonstration on YouTube';
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture; web-share';
+    frame.allowFullscreen = true;
+    player.replaceChildren(frame);
+  }, { once: true });
+});
 
 const imageDialog = document.querySelector('#image-dialog');
 document.querySelectorAll('[data-image]').forEach(button => {

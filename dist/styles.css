@@ -123,3 +123,8 @@ html[lang^="zh"] .detail-page .interaction-loop{--flow-font:18px}
 .campus-library-comparison img{aspect-ratio:4/3;object-fit:contain}
 .campus-comparison-note{font-size:13px;line-height:1.75;margin-top:18px}
 @media(max-width:700px){.detail-page .campus-library-comparison{grid-template-columns:1fr;gap:28px}}
+
+/* One current gameplay video with a direct YouTube link. */
+.detail-page .video-controls .demo-label{font-size:14px;color:var(--muted)}
+.detail-page .video-controls{padding-top:8px}
+.detail-page .fps-features img[src="assets/fps-blender-project.webp"]{object-fit:contain;background:#222930}

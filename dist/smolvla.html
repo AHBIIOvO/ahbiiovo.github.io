@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#191d21">
+  <meta name="description" content="SmolVLA language-conditioned grasping: a three-person final-year project using a dual-camera SO101 robot, runtime target switching and policy fine-tuning.">
+  <title>SmolVLA Grasping — AHBIIOvO</title>
+  <link rel="icon" href="assets/favicon.svg?v=20261023-alias" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=20261126-youtube">
+  <link rel="stylesheet" href="shared.css?v=20261025-navprevious">
+  <link rel="stylesheet" href="smolvla.css?v=20261126-youtube">
+  <script src="app.js?v=20261126-youtube" defer></script>
+  <script src="shared.js?v=20261025-navprevious" defer></script>
+</head>
+<body class="detail-page" data-title-en="SmolVLA Grasping — AHBIIOvO" data-title-zh="SmolVLA 语言条件抓取 — AHBIIOvO">
+  <header class="header wrap">
+    <nav aria-label="Main navigation">
+      <a href="index.html#work" data-en="Selected work" data-zh="精选作品">Selected work</a>
+      <a href="index.html#about" data-en="About" data-zh="关于我">About</a>
+      <button id="language" type="button" aria-label="切换到中文">中文 <span>↗</span></button>
+    </nav>
+  </header>
+  <main id="top">
+    <div class="breadcrumb wrap">
+      <a href="index.html" class="project-home-link"><span class="jump-content"><svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true" data-direction="up-left"><path d="M17 17 7 7m0 10V7h10"/></svg><span data-en="Back to home" data-zh="返回首页">Back to home</span></span></a>
+      <span class="project-counter">PROJECT <span class="current-project">5</span>/5</span>
+    </div>
+    <section class="project wrap robotics-project" aria-labelledby="smolvla-title">
+      <div class="eyebrow ruled"><span>PROJECT 5</span><span>ROBOTICS / VISION-LANGUAGE-ACTION</span></div>
+      <div class="project-heading">
+        <h1 id="smolvla-title">SmolVLA<br>Grasping<span class="title-dot">.</span></h1>
+        <div class="project-summary">
+          <p data-en="A three-person final-year project: a dual-camera SO101 robot follows language instructions to pick a red or blue cube, place it in a target area and return to its starting pose." data-zh="三人团队毕业设计：双摄 SO101 机械臂根据语言指令选择红色或蓝色方块，将其抓取并放入目标区域，最后回到起始姿态。">A three-person final-year project: a dual-camera SO101 robot follows language instructions to pick a red or blue cube, place it in a target area and return to its starting pose.</p>
+          <div class="tags"><span>Python</span><span>PyTorch</span><span>LeRobot</span><span>SmolVLA</span></div>
+        </div>
+      </div>
+      <div class="robotics-overview">
+        <figure>
+          <button class="image-button" data-image="assets/smolvla-robot.webp" data-caption-en="Red and blue cubes in the real-robot setup. Frame from the project video, with background removal and clarity enhancement." data-caption-zh="实机环境中的红蓝方块。画面截取自项目视频，并经过背景去除与清晰度增强处理。" aria-label="Enlarge image: SO101 robot and red and blue cubes">
+            <img src="assets/smolvla-robot.webp" width="1448" height="1086" alt="White SO101 robot arm beside a red cube and a blue cube" fetchpriority="high">
+          </button>
+          <figcaption><span>FIGURE 1</span><span data-en="Real-robot setup. Video frame with background removal and clarity enhancement." data-zh="实机环境。视频截帧，经过背景去除与清晰度增强处理。">Real-robot setup. Video frame with background removal and clarity enhancement.</span></figcaption>
+        </figure>
+        <div class="robotics-context">
+          <article>
+            <h3 data-en="Team project &amp; contribution" data-zh="团队项目与参与工作">Team project &amp; contribution</h3>
+            <p data-en="I worked with the team on the grasp-and-place system using front and wrist cameras, and participated in demonstration collection, annotation and fine-tuning of the pretrained SmolVLA policy." data-zh="与团队共同开发使用桌面与腕部相机的抓取放置系统，参与示范采集、标注，以及预训练 SmolVLA 策略的微调。">I worked with the team on the grasp-and-place system using front and wrist cameras, and participated in demonstration collection, annotation and fine-tuning of the pretrained SmolVLA policy.</p>
+          </article>
+          <article>
+            <h3 data-en="Runtime target switching" data-zh="运行中切换目标">Runtime target switching</h3>
+            <p data-en="The same policy stays loaded when the target changes. The controller updates the task text, clears the active action chunk and rejects late inference results from the previous task before executing new predictions." data-zh="切换红蓝目标时，保持同一策略加载。控制器更新任务文本、清空当前动作块，并在执行新的预测前丢弃上一任务迟到的推理结果。">The same policy stays loaded when the target changes. The controller updates the task text, clears the active action chunk and rejects late inference results from the previous task before executing new predictions.</p>
+          </article>
+        </div>
+      </div>
+      <section class="robotics-demos" aria-labelledby="robotics-demo-title">
+        <p class="small-label" data-en="REAL-ROBOT DEMONSTRATIONS" data-zh="实机演示">REAL-ROBOT DEMONSTRATIONS</p>
+        <h2 id="robotics-demo-title" data-en="Target selection &amp; voice control" data-zh="目标切换与语音控制">Target selection &amp; voice control</h2>
+        <div class="gallery robotics-demo-gallery">
+          <figure><div class="video-player"  data-youtube="CvP0hVX3gXA" data-video-title="SmolVLA SO101 — Runtime Target Switching"><button class="video-cover" type="button" aria-label="Play SmolVLA SO101 — Runtime Target Switching on YouTube"><img src="assets/smolvla-target-switch-poster.webp" width="1600" height="900" loading="lazy" alt="SmolVLA SO101 — Runtime Target Switching"><span class="video-shade"></span><span class="video-play">▶</span><span class="video-cover-label"><span class="small-label">PLAY DEMO / YOUTUBE</span><strong data-en="Switch targets." data-zh="运行中切换目标。">Switch targets.</strong></span></button></div><div class="video-controls"><a href="https://youtu.be/CvP0hVX3gXA" target="_blank" rel="noopener noreferrer" class="text-link publication-link watch-link"><span class="publication-content"><span data-en="Watch on YouTube" data-zh="前往 YouTube 观看">Watch on YouTube</span><svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true" data-direction="up-right"><path d="M7 17 17 7M7 7h10v10"/></svg></span></a></div><figcaption><span>FIGURE 2</span><span data-en="Runtime target switching." data-zh="运行中切换红蓝目标。">Runtime target switching.</span></figcaption></figure>
+          <figure><div class="video-player"  data-youtube="INgFORp3YtY" data-video-title="SmolVLA SO101 — Voice-Controlled Pick and Place"><button class="video-cover" type="button" aria-label="Play SmolVLA SO101 — Voice-Controlled Pick and Place on YouTube"><img src="assets/smolvla-voice-control-poster.webp" width="1600" height="900" loading="lazy" alt="SmolVLA SO101 — Voice-Controlled Pick and Place"><span class="video-shade"></span><span class="video-play">▶</span><span class="video-cover-label"><span class="small-label">PLAY DEMO / YOUTUBE</span><strong data-en="Voice control." data-zh="语音控制演示。">Voice control.</strong></span></button></div><div class="video-controls"><a href="https://youtu.be/INgFORp3YtY" target="_blank" rel="noopener noreferrer" class="text-link publication-link watch-link"><span class="publication-content"><span data-en="Watch on YouTube" data-zh="前往 YouTube 观看">Watch on YouTube</span><svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true" data-direction="up-right"><path d="M7 17 17 7M7 7h10v10"/></svg></span></a></div><figcaption><span>FIGURE 3</span><span data-en="Voice-controlled pick and place." data-zh="语音控制抓取与放置。">Voice-controlled pick and place.</span></figcaption></figure>
+        </div>
+      </section>
+      <div class="contributions">
+        <p class="small-label" data-en="DEMONSTRATIONS / SAMPLING / FINE-TUNING" data-zh="示范 / 采样 / 微调">DEMONSTRATIONS / SAMPLING / FINE-TUNING</p>
+        <div class="three-col">
+          <article>
+            <h3 data-en="200 demonstrations" data-zh="200 条示范">200 demonstrations</h3>
+            <p data-en="The team collected two-object demonstrations across five regions, swapping left/right colors and balancing red/blue target tasks. Each demonstration was marked at the frame immediately before continuous gripper closure." data-zh="团队在五个区域采集双物体示范，交换左右两侧的颜色，并平衡抓红、抓蓝两类目标任务。每条示范均标记夹爪开始连续合爪前一帧。">The team collected two-object demonstrations across five regions, swapping left/right colors and balancing red/blue target tasks. Each demonstration was marked at the frame immediately before continuous gripper closure.</p>
+          </article>
+          <article>
+            <h3 data-en="Stage-aware sampling" data-zh="按阶段采样">Stage-aware sampling</h3>
+            <p data-en="Half of each batch is sampled from before the marker and half from the full trajectory, with red/blue tasks balanced. Each input retains 50 future recorded actions as supervision, covering carrying, placement and return." data-zh="每个批次的一半输入从标记前阶段采样，另一半从完整轨迹采样，同时平衡红蓝任务。每个输入仍以其后 50 步记录动作作为监督，覆盖搬运、放置与归位。">Half of each batch is sampled from before the marker and half from the full trajectory, with red/blue tasks balanced. Each input retains 50 future recorded actions as supervision, covering carrying, placement and return.</p>
+          </article>
+          <article>
+            <h3 data-en="Fine-tuning setup" data-zh="微调配置">Fine-tuning setup</h3>
+            <p data-en="The run used 160 training demonstrations and 40 validation demonstrations, a batch size of 128 and 7,500 optimizer updates to fine-tune pretrained SmolVLA." data-zh="使用 160 条训练示范和 40 条验证示范，以 128 的批次大小、7,500 次优化器更新，对预训练 SmolVLA 进行微调。">The run used 160 training demonstrations and 40 validation demonstrations, a batch size of 128 and 7,500 optimizer updates to fine-tune pretrained SmolVLA.</p>
+          </article>
+        </div>
+        <p class="training-note" data-en="Stage-aware sampling was an experimental training choice; its effect has not been isolated by a controlled comparison." data-zh="按阶段采样是本项目探索的训练选择，尚未通过控制变量对照单独确认其效果。">Stage-aware sampling was an experimental training choice; its effect has not been isolated by a controlled comparison.</p>
+      </div>
+      <section class="research robotics-result" aria-labelledby="robotics-result-title">
+        <div>
+          <p class="small-label" data-en="REPORTED REAL-ROBOT RESULT" data-zh="团队报告的实机结果">REPORTED REAL-ROBOT RESULT</p>
+          <h2 id="robotics-result-title" data-en="Whole-task completion" data-zh="整次任务完成情况">Whole-task completion</h2>
+          <div class="research-numbers"><p><strong>17 / 20</strong><span data-en="85% in familiar adjacent-object layouts" data-zh="熟悉的相邻双物体布局下，完成率为 85%">85% in familiar adjacent-object layouts</span></p></div>
+          <p class="result-scope" data-en="Success required placing the correct color in the target area and returning the arm. Autonomous retries counted as success; this is whole-task completion, rather than first-grasp accuracy." data-zh="成功要求将正确颜色的方块放入目标区域，并使机械臂归位。自主重试后完成也计为成功；这一结果表示整次任务完成情况，并非首次抓取准确率。">Success required placing the correct color in the target area and returning the arm. Autonomous retries counted as success; this is whole-task completion, rather than first-grasp accuracy.</p>
+        </div>
+        <div class="result-limits">
+          <h3 data-en="Limits &amp; evaluation scope" data-zh="局限与评估范围">Limits &amp; evaluation scope</h3>
+          <p data-en="Trial-by-trial records remain to be consolidated. Changed spacing or diagonal layouts can cause approach errors, and reliable post-grasp target verification remains unresolved." data-zh="逐次测试记录仍有待汇总。改变物体间距或采用斜向摆放可能造成接近目标时的定位偏差，可靠的抓后目标身份验证也尚未解决。">Trial-by-trial records remain to be consolidated. Changed spacing or diagonal layouts can cause approach errors, and reliable post-grasp target verification remains unresolved.</p>
+          <p data-en="This result does not establish performance in unseen layouts or a measured improvement over a baseline." data-zh="该结果不能证明系统在陌生布局下的性能，也不能说明相较基线存在已量化的提升。">This result does not establish performance in unseen layouts or a measured improvement over a baseline.</p>
+        </div>
+      </section>
+    </section>
+    <nav class="project-next wrap" aria-label="Project navigation">
+      <a class="project-nav-link previous-link" href="campus.html" rel="prev"><span class="project-nav-content"><svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true" data-direction="left"><path d="M19 12H5m6-6-6 6 6 6"/></svg><span class="project-nav-copy"><span class="small-label" data-en="PREVIOUS PROJECT" data-zh="上一个作品">PREVIOUS PROJECT</span><strong>BNBU 3D Campus</strong></span></span></a>
+      <span class="project-nav-divider" aria-hidden="true"></span>
+      <a class="project-nav-link next-link project-return-home" href="index.html"><span class="project-nav-content"><span class="project-nav-copy"><span class="small-label" data-en="NO MORE PROJECTS" data-zh="没有更多作品">NO MORE PROJECTS</span><strong data-en="Back to home" data-zh="返回首页">Back to home</strong></span><svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true" data-direction="up-left"><path d="M17 17 7 7m0 10V7h10"/></svg></span></a>
+    </nav>
+  </main>
+  <footer class="footer wrap"><span>© <span id="year">2026</span> AHBIIOvO</span><span data-en="PERSONAL DESIGN PORTFOLIO" data-zh="个人设计作品集">PERSONAL DESIGN PORTFOLIO</span></footer>
+  <dialog id="image-dialog" aria-label="Project image preview"><form method="dialog"><button class="close-dialog" aria-label="Close image preview">Close ×</button></form><img id="dialog-image" alt=""><p id="dialog-caption"></p></dialog>
+  <button class="back-top" id="back-top" type="button" aria-label="Back to top" aria-hidden="true" tabindex="-1"><span class="back-top-label" id="back-top-label" aria-hidden="true">Top</span><span class="back-top-rule" aria-hidden="true"></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"/></svg></button>
+</body>
+</html>

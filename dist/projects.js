@@ -53,5 +53,18 @@ window.portfolioProjects = Object.freeze([
     },
     role: { en: 'Web development · Model optimization', zh: '网页开发 · 模型优化' },
     tools: ['Three.js', 'Web 3D']
+  },
+  {
+    id: 'smolvla',
+    title: 'SmolVLA Grasping',
+    type: 'ROBOTICS / VLA',
+    href: 'smolvla.html',
+    image: { src: 'assets/smolvla-robot.webp', width: 1448, height: 1086, alt: 'SO101 robot arm with red and blue target cubes' },
+    description: {
+      en: 'A dual-camera SO101 grasp-and-place system. One SmolVLA policy follows language instructions and supports runtime switching between red and blue targets.',
+      zh: '双摄 SO101 抓取放置系统。使用同一 SmolVLA 策略，根据语言指令选择目标，并支持运行中切换红蓝目标。'
+    },
+    role: { en: 'Final-year project · Three-person team', zh: '毕业设计 · 三人团队' },
+    tools: ['Python', 'PyTorch', 'LeRobot', 'SmolVLA']
   }
 ]);

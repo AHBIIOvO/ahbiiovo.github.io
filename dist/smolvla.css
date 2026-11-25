@@ -1,0 +1,31 @@
+/* Keep the project type, image preview and navigation shared with the portfolio. */
+.robotics-overview{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:center}
+.robotics-overview .image-button{background:#050607}
+.robotics-overview img{aspect-ratio:4/3;object-fit:contain}
+.robotics-context{display:grid;gap:32px}
+.robotics-demos{margin-top:64px;padding-top:32px;border-top:1px solid var(--line)}
+.robotics-demos>.small-label{margin-bottom:14px}
+.robotics-demo-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+.robotics-demo-gallery img{aspect-ratio:16/9;object-fit:contain}
+.robotics-demos>h2{font-size:clamp(28px,3vw,40px);line-height:1.2;margin-bottom:28px}
+.robotics-project .training-note{margin-top:26px;font-size:14px;line-height:1.85}
+.robotics-project .robotics-result h2{font-size:clamp(32px,3vw,42px);line-height:1.15;margin-bottom:22px}
+.robotics-project .robotics-result .research-numbers{margin-bottom:22px}
+.robotics-project .robotics-result .research-numbers strong{white-space:nowrap}
+.robotics-project .robotics-result .result-scope{font-size:16px;line-height:1.85;max-width:100%}
+.robotics-project .robotics-result .result-limits{border-left:1px solid #4b5b69;padding-left:30px}
+.robotics-project .robotics-result .result-limits h3{font-size:22px;line-height:1.35;margin-bottom:16px}
+.robotics-project .robotics-result .result-limits p{font-size:16px;line-height:1.9}
+.robotics-project .robotics-result .result-limits p+p{margin-top:18px}
+@media(max-width:1000px){.robotics-overview{gap:32px}}
+@media(max-width:700px){
+ .robotics-overview{grid-template-columns:1fr;gap:32px}
+ .robotics-context{gap:28px}
+ .robotics-demos{margin-top:44px;padding-top:24px}
+ .robotics-demo-gallery{grid-template-columns:1fr;gap:28px}
+ .robotics-project .robotics-result .result-limits{border-left:0;border-top:1px solid #4b5b69;padding:26px 0 0}
+}
+
+.robotics-demo-gallery .video-cover-label{left:22px;bottom:22px}
+.robotics-demo-gallery .video-cover-label strong{font-size:clamp(20px,2.2vw,28px);line-height:1.2}
+.robotics-demo-gallery .video-controls{justify-content:flex-end}

@@ -1,6 +1,6 @@
 # AHBIIOvO · Portfolio
 
-A personal website showcasing my game development and interactive projects: **AI-Driven VR Museum**, **First-Person Shooter**, **OutRun**, and **BNBU 3D Campus**.
+A personal website showcasing my game development, interactive and robotics projects: **AI-Driven VR Museum**, **First-Person Shooter**, **OutRun**, **BNBU 3D Campus**, and **SmolVLA Grasping**.
 
 [Visit the website](https://ahbiiovo.github.io/)
 
